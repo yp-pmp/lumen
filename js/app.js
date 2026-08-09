@@ -139,6 +139,18 @@ function warnAboutStorage() {
   );
 }
 
+/**
+ * Offline support, if the browser offers it. Registration is deliberately
+ * silent and failure-tolerant: LUMEN works perfectly well without it, and a
+ * blocked or unsupported service worker should never cost you a page.
+ */
+function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) return;
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  });
+}
+
 /* --- start ---------------------------------------------------------------- */
 
 function begin() {
@@ -157,6 +169,7 @@ function begin() {
   });
 
   if (!store.isPersistent()) warnAboutStorage();
+  registerServiceWorker();
 
   const settings = store.getSettings();
   if (!settings.onboarded) {

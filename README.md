@@ -36,9 +36,9 @@ Two things to know before you rely on it:
   their own container, so they each start an empty journal. Settings →
   **Export everything** on one and **Bring in a backup** on the other
   reconciles them (see below).
-- **It only works while this Mac is serving and you're on the same network.**
-  There's no offline caching, because a service worker needs HTTPS and a plain
-  LAN address isn't a secure context. If you want LUMEN on your phone properly
+- **Over `--lan` it only works while this Mac is serving and you're on the
+  same network.** Offline support needs a service worker, which needs a secure
+  context, and a plain LAN address isn't one. For LUMEN on your phone properly
   — away from home, offline, always there — put it on a static host over HTTPS
   (see below). Everything still stays in your browser; the host only serves the
   files.
@@ -68,10 +68,28 @@ experience: install to the home screen from anywhere, not only your own Wi-Fi.
 Journal entries still live in each browser's local storage, so each device
 keeps its own journal, and the host never sees a word of it.
 
+## Offline
+
+`sw.js` is a service worker that caches the app's own files, so once you have
+opened LUMEN on a device it launches with no connection at all. It registers
+itself on load; there is nothing to switch on.
+
+It is **network-first with a 2.5 second timeout**. Online you always get the
+current version, so there is no stale build to clear after a deploy. Offline —
+or on a connection that has gone vague — the request falls back to the cache
+almost immediately and the app opens as usual. Writing, searching, reflections
+and everything else already ran locally, so nothing is degraded; only the
+initial load ever touched the network.
+
+Two things to know. It needs HTTPS (or `localhost`), so it is inactive over
+`--lan`. And **if you add a file to the app, add it to `PRECACHE` in `sw.js`**,
+or it won't be there offline.
+
 ## Where things are
 
 ```
 index.html            the shell — everything else is loaded from here
+sw.js                 offline caching of the app's own files
 serve.py, start.sh    the local server (--lan opens it to your phone)
 manifest.webmanifest  home-screen name, colours and display mode
 icon.svg              the home-screen icon
@@ -97,6 +115,8 @@ js/
   page still destroys its content immediately and irreversibly.
 - The app makes no `fetch`, no XHR, no WebSocket, and loads no external font,
   script, or image. The page's own files and inline `data:` URIs are all of it.
+- The service worker caches only those same files. It has no journal content to
+  cache — entries are never fetched over the network — and it sends nothing.
 - Journal text is never written to the console. The two `console.warn` calls in
   `store.js` report that storage failed, never what was in it.
 - The "words that kept returning" list on a monthly reflection is counted in
