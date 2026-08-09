@@ -149,9 +149,10 @@ function importFile(note, onChange) {
       const result = store.importData(JSON.parse(await file.text()));
       const parts = [];
       if (result.added) parts.push(`${result.added} ${result.added === 1 ? "page" : "pages"} added`);
-      if (result.skipped) parts.push(`${result.skipped} already here`);
+      if (result.updated) parts.push(`${result.updated} updated`);
+      if (result.unchanged) parts.push(`${result.unchanged} already up to date`);
       if (result.notes) parts.push(`${result.notes} month ${result.notes === 1 ? "note" : "notes"}`);
-      note.textContent = parts.length ? `${parts.join(", ")}.` : "Nothing new in that file.";
+      note.textContent = parts.length ? `${parts.join(", ")}.` : "Nothing in that file.";
       announce(note.textContent);
       onChange();
     } catch (error) {

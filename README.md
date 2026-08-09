@@ -31,11 +31,11 @@ used on a phone.
 
 Two things to know before you rely on it:
 
-- **The phone keeps its own journal.** Entries live in each browser's local
-  storage, so what you write on your phone is not on your Mac and vice versa.
-  Settings → **Export everything** on one device and **Bring in a backup** on
-  the other will merge them; pages already present are skipped, so importing
-  the same file twice is harmless.
+- **The phone keeps its own journal.** Storage is walled off per browser, per
+  device and per origin — an iOS home-screen app, Safari and Chrome each get
+  their own container, so they each start an empty journal. Settings →
+  **Export everything** on one and **Bring in a backup** on the other
+  reconciles them (see below).
 - **It only works while this Mac is serving and you're on the same network.**
   There's no offline caching, because a service worker needs HTTPS and a plain
   LAN address isn't a secure context. If you want LUMEN on your phone properly
@@ -110,6 +110,31 @@ Settings → **Add demo pages** loads fifteen fictional entries, including one
 written a year ago today so you can see "On this day". Every one carries
 `isDemo: true`, and **Remove demo pages** deletes exactly those and nothing
 else. Anything you have written yourself is untouched.
+
+## Moving pages between devices
+
+Settings → **Export everything** writes a JSON file; **Bring in a backup**
+reads one back. The merge is safe to run in either direction, as often as you
+like:
+
+- Pages are matched by id. One that isn't here yet is added.
+- If both sides have a page, **the more recently edited copy wins**, so an edit
+  made on your phone reaches your Mac and the other way round.
+- Two copies that say the same thing are left alone whatever their timestamps
+  claim, so nothing gets a spurious "edited" mark.
+- The earlier `createdAt` is kept — an edit elsewhere doesn't rewrite when a
+  page was started.
+- Month reflection notes follow the same newest-wins rule.
+
+**Deletions don't travel.** Nothing in an import removes anything, so a page
+you deleted on one device comes back if you later import an older file from
+another that still has it. Doing that properly needs deletion records, which
+the format doesn't carry yet.
+
+Two other caveats worth knowing. Newest-wins compares clocks, so if two devices
+disagree badly about the time, the wrong copy can win. And if you edit the
+*same* page on both devices before reconciling, one of those edits is lost —
+this is a merge, not a three-way diff.
 
 ## Keeping your writing
 

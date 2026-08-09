@@ -317,10 +317,34 @@ export function monthsWithEntries() {
     .map(([ym, count]) => ({ ym, count }));
 }
 
+/* The fields that make a page what it is. Everything else — updatedAt, and
+   the word count derived from content — is bookkeeping, and two copies that
+   agree on all of these are the same page however their timestamps differ. */
+const MATERIAL_FIELDS = ["content", "mood", "prompt", "promptCategory", "date"];
+
+function millis(iso) {
+  const value = new Date(iso).getTime();
+  return Number.isNaN(value) ? 0 : value;
+}
+
+function sameContent(a, b) {
+  return MATERIAL_FIELDS.every((field) => a[field] === b[field]);
+}
+
+function earliest(a, b) {
+  if (!millis(a)) return b;
+  if (!millis(b)) return a;
+  return millis(a) <= millis(b) ? a : b;
+}
+
 /**
  * Merge a previously exported file into this device's journal.
- * Additive and non-destructive: an entry already here by id is left alone,
- * and an existing month note is never overwritten by an imported one.
+ *
+ * Pages are matched by id, and the more recently edited copy wins, so an edit
+ * made on one device reaches the other. A copy that says the same thing is
+ * left alone whatever its timestamp claims, and nothing here deletes: a page
+ * missing from the file stays put.
+ *
  * Returns a summary, or throws if the file isn't a LUMEN export.
  */
 export function importData(data) {
@@ -328,12 +352,33 @@ export function importData(data) {
     throw new Error("not a LUMEN export");
   }
 
-  const known = new Set(entries.map((entry) => entry.id));
+  const byId = new Map(entries.map((entry) => [entry.id, entry]));
   const incoming = data.entries.filter(isEntryish).map(normalise);
-  const fresh = incoming.filter((entry) => !known.has(entry.id));
 
-  if (fresh.length) {
-    entries = entries.concat(fresh);
+  let added = 0;
+  let updated = 0;
+  let unchanged = 0;
+
+  for (const candidate of incoming) {
+    const mine = byId.get(candidate.id);
+
+    if (!mine) {
+      byId.set(candidate.id, candidate);
+      added += 1;
+    } else if (sameContent(mine, candidate) || millis(candidate.updatedAt) <= millis(mine.updatedAt)) {
+      unchanged += 1;
+    } else {
+      byId.set(candidate.id, {
+        ...candidate,
+        // An edit made elsewhere shouldn't rewrite when the page was started.
+        createdAt: earliest(mine.createdAt, candidate.createdAt),
+      });
+      updated += 1;
+    }
+  }
+
+  if (added || updated) {
+    entries = [...byId.values()];
     sortEntries();
     writeJSON(KEYS.entries, entries);
   }
@@ -343,14 +388,18 @@ export function importData(data) {
     for (const [ym, value] of Object.entries(data.reflections)) {
       const note = value?.note;
       if (typeof note !== "string" || !note.trim()) continue;
-      if (reflections[ym]?.note?.trim()) continue;
+
+      const mine = reflections[ym];
+      if (mine?.note === note) continue;
+      if (mine?.note?.trim() && millis(mine.updatedAt) >= millis(value.updatedAt)) continue;
+
       reflections[ym] = { note, updatedAt: value.updatedAt || new Date().toISOString() };
       notes += 1;
     }
     if (notes) writeJSON(KEYS.reflections, reflections);
   }
 
-  return { added: fresh.length, skipped: incoming.length - fresh.length, notes };
+  return { added, updated, unchanged, notes };
 }
 
 export function exportData() {
