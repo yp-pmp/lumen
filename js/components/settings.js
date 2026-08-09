@@ -150,6 +150,7 @@ function importFile(note, onChange) {
       const parts = [];
       if (result.added) parts.push(`${result.added} ${result.added === 1 ? "page" : "pages"} added`);
       if (result.updated) parts.push(`${result.updated} updated`);
+      if (result.removed) parts.push(`${result.removed} removed`);
       if (result.unchanged) parts.push(`${result.unchanged} already up to date`);
       if (result.notes) parts.push(`${result.notes} month ${result.notes === 1 ? "note" : "notes"}`);
       note.textContent = parts.length ? `${parts.join(", ")}.` : "Nothing in that file.";

@@ -13,6 +13,7 @@ const KEYS = {
   entries: "lumen.v1.entries",
   settings: "lumen.v1.settings",
   reflections: "lumen.v1.reflections",
+  deleted: "lumen.v1.deleted",
 };
 
 const DEFAULT_SETTINGS = {
@@ -25,6 +26,10 @@ const MOODS = ["Peaceful", "Happy", "Reflective", "Energized", "Tired", "Anxious
 let entries = [];
 let settings = { ...DEFAULT_SETTINGS };
 let reflections = {};
+/* Ids of pages that were deleted, and when — no content, just a record that
+   the deletion happened, so it can travel to another device instead of the
+   page reappearing on the next import. */
+let deleted = {};
 let storageAvailable = true;
 
 /* --- plumbing ------------------------------------------------------------- */
@@ -80,15 +85,17 @@ export function load() {
   entries = Array.isArray(stored) ? stored.filter(isEntryish).map(normalise) : [];
   settings = { ...DEFAULT_SETTINGS, ...readJSON(KEYS.settings, {}) };
   reflections = readJSON(KEYS.reflections, {}) || {};
+  deleted = readJSON(KEYS.deleted, {}) || {};
   sortEntries();
 
   // Another tab wrote something — stay in step.
   window.addEventListener("storage", (event) => {
-    if (event.key !== KEYS.entries && event.key !== KEYS.settings && event.key !== KEYS.reflections) return;
+    if (!Object.values(KEYS).includes(event.key)) return;
     const fresh = readJSON(KEYS.entries, []);
     entries = Array.isArray(fresh) ? fresh.filter(isEntryish).map(normalise) : [];
     settings = { ...DEFAULT_SETTINGS, ...readJSON(KEYS.settings, {}) };
     reflections = readJSON(KEYS.reflections, {}) || {};
+    deleted = readJSON(KEYS.deleted, {}) || {};
     sortEntries();
     for (const listener of externalListeners) listener();
   });
@@ -173,15 +180,23 @@ export function saveEntry(entry) {
   else entries[index] = { ...entries[index], ...record };
   sortEntries();
   writeJSON(KEYS.entries, entries);
+
+  // Writing to a page undoes any record of it having been deleted.
+  if (deleted[record.id]) {
+    delete deleted[record.id];
+    writeJSON(KEYS.deleted, deleted);
+  }
   return record;
 }
 
 export function deleteEntry(id) {
   const before = entries.length;
   entries = entries.filter((entry) => entry.id !== id);
-  if (entries.length !== before) {
-    writeJSON(KEYS.entries, entries);
-  }
+  if (entries.length === before) return;
+
+  deleted[id] = new Date().toISOString();
+  writeJSON(KEYS.entries, entries);
+  writeJSON(KEYS.deleted, deleted);
 }
 
 export function addEntries(list) {
@@ -197,6 +212,8 @@ export function hasDemoEntries() {
 }
 
 export function removeDemoEntries() {
+  // No deletion records here on purpose: demo pages are meant to be added and
+  // removed freely, and tombstoning them would stop them coming back.
   entries = entries.filter((entry) => !entry.isDemo);
   writeJSON(KEYS.entries, entries);
 }
@@ -340,10 +357,12 @@ function earliest(a, b) {
 /**
  * Merge a previously exported file into this device's journal.
  *
- * Pages are matched by id, and the more recently edited copy wins, so an edit
- * made on one device reaches the other. A copy that says the same thing is
- * left alone whatever its timestamp claims, and nothing here deletes: a page
- * missing from the file stays put.
+ * Pages are matched by id and the most recent action wins, whether that action
+ * was an edit or a deletion. So an edit made on your phone reaches your Mac, a
+ * page you deleted on your Mac disappears here too, and a page you deleted and
+ * then rewrote stays. A copy that says the same thing is left alone whatever
+ * its timestamp claims. A page simply missing from the file — with no deletion
+ * record for it — stays put.
  *
  * Returns a summary, or throws if the file isn't a LUMEN export.
  */
@@ -355,12 +374,38 @@ export function importData(data) {
   const byId = new Map(entries.map((entry) => [entry.id, entry]));
   const incoming = data.entries.filter(isEntryish).map(normalise);
 
+  /* Deletion records from both sides, later one winning. These are merged
+     before the pages so that a page deleted elsewhere is never re-added on
+     its way through. */
+  let tombstonesChanged = false;
+  const incomingDeleted = data.deleted && typeof data.deleted === "object" ? data.deleted : {};
+  for (const [id, when] of Object.entries(incomingDeleted)) {
+    if (typeof when !== "string" || !millis(when)) continue;
+    if (!deleted[id] || millis(when) > millis(deleted[id])) {
+      deleted[id] = when;
+      tombstonesChanged = true;
+    }
+  }
+
   let added = 0;
   let updated = 0;
   let unchanged = 0;
+  let removed = 0;
 
   for (const candidate of incoming) {
     const mine = byId.get(candidate.id);
+    const tombstone = deleted[candidate.id];
+
+    // A page written after it was deleted somewhere else is a deliberate
+    // revival: the writing is newer than the deletion, so it wins.
+    if (tombstone) {
+      if (millis(tombstone) >= millis(candidate.updatedAt)) {
+        unchanged += 1;
+        continue;
+      }
+      delete deleted[candidate.id];
+      tombstonesChanged = true;
+    }
 
     if (!mine) {
       byId.set(candidate.id, candidate);
@@ -377,11 +422,26 @@ export function importData(data) {
     }
   }
 
-  if (added || updated) {
+  // Pages held here that were deleted elsewhere afterwards.
+  for (const [id, when] of Object.entries(deleted)) {
+    const mine = byId.get(id);
+    if (!mine) continue;
+    if (millis(when) >= millis(mine.updatedAt)) {
+      byId.delete(id);
+      removed += 1;
+    } else {
+      // Edited here after being deleted there — keep the page, drop the record.
+      delete deleted[id];
+      tombstonesChanged = true;
+    }
+  }
+
+  if (added || updated || removed) {
     entries = [...byId.values()];
     sortEntries();
     writeJSON(KEYS.entries, entries);
   }
+  if (tombstonesChanged) writeJSON(KEYS.deleted, deleted);
 
   let notes = 0;
   if (data.reflections && typeof data.reflections === "object") {
@@ -399,13 +459,14 @@ export function importData(data) {
     if (notes) writeJSON(KEYS.reflections, reflections);
   }
 
-  return { added, updated, unchanged, notes };
+  return { added, updated, unchanged, removed, notes };
 }
 
 export function exportData() {
   return {
     app: "LUMEN",
     version: 1,
+    deleted,
     exportedAt: new Date().toISOString(),
     entries,
     reflections,
@@ -413,10 +474,15 @@ export function exportData() {
 }
 
 export function clearEverything() {
+  /* Deliberately leaves no deletion records. This is a local reset, not a
+     page-by-page decision to propagate — and tombstoning everything would
+     make your own backups impossible to restore. */
   entries = [];
   reflections = {};
+  deleted = {};
   settings = { ...DEFAULT_SETTINGS, theme: settings.theme, onboarded: true };
   writeJSON(KEYS.entries, entries);
   writeJSON(KEYS.reflections, reflections);
+  writeJSON(KEYS.deleted, deleted);
   writeJSON(KEYS.settings, settings);
 }

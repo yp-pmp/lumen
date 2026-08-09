@@ -92,6 +92,9 @@ js/
 ## Privacy
 
 - Entries are written to `localStorage` under `lumen.v1.*` and nowhere else.
+- `lumen.v1.deleted` keeps the ids and timestamps of deleted pages so that
+  deletions can travel between devices. It holds no journal text — deleting a
+  page still destroys its content immediately and irreversibly.
 - The app makes no `fetch`, no XHR, no WebSocket, and loads no external font,
   script, or image. The page's own files and inline `data:` URIs are all of it.
 - Journal text is never written to the console. The two `console.warn` calls in
@@ -115,26 +118,35 @@ else. Anything you have written yourself is untouched.
 
 Settings → **Export everything** writes a JSON file; **Bring in a backup**
 reads one back. The merge is safe to run in either direction, as often as you
-like:
+like. Pages are matched by id, and **the most recent action wins** — whether
+that action was an edit or a deletion:
 
-- Pages are matched by id. One that isn't here yet is added.
-- If both sides have a page, **the more recently edited copy wins**, so an edit
-  made on your phone reaches your Mac and the other way round.
+- A page that isn't here yet is added.
+- If both sides have it, the more recently edited copy wins, so an edit made
+  on your phone reaches your Mac and the other way round.
+- A page you deleted on one device is deleted here too.
+- A page you deleted and *then* rewrote stays: the writing is newer than the
+  deletion, so it counts as a deliberate revival.
 - Two copies that say the same thing are left alone whatever their timestamps
   claim, so nothing gets a spurious "edited" mark.
 - The earlier `createdAt` is kept — an edit elsewhere doesn't rewrite when a
   page was started.
 - Month reflection notes follow the same newest-wins rule.
 
-**Deletions don't travel.** Nothing in an import removes anything, so a page
-you deleted on one device comes back if you later import an older file from
-another that still has it. Doing that properly needs deletion records, which
-the format doesn't carry yet.
+Deletions travel because the export carries a `deleted` map of `id → when`.
+Those records hold no content, only that a page with that id was deleted and
+at what moment, which is the minimum needed to stop it reappearing. Exports
+made before this existed still import fine; they simply carry no deletions.
 
-Two other caveats worth knowing. Newest-wins compares clocks, so if two devices
-disagree badly about the time, the wrong copy can win. And if you edit the
-*same* page on both devices before reconciling, one of those edits is lost —
-this is a merge, not a three-way diff.
+**Delete everything** is the one exception: it records nothing, because it is a
+local reset rather than a page-by-page decision — and tombstoning the lot would
+make your own backups impossible to restore. Removing demo pages records
+nothing either, so they can be added back.
+
+Two caveats remain. Newest-wins compares clocks, so if two devices disagree
+badly about the time, the wrong copy can win. And if you edit the *same* page
+on both devices before reconciling, one of those edits is lost — this is a
+merge, not a three-way diff.
 
 ## Keeping your writing
 
@@ -157,6 +169,9 @@ it from Settings now and then.
   isDemo,          // only on demo entries
 }
 ```
+
+Deletions are recorded separately, as `{ [id]: deletedAt }`, and travel in the
+export under `deleted`.
 
 Stable ids and `updatedAt` are there so a sync layer could be added later
 without reshaping anything.
