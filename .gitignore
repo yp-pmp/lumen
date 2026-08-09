@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+
+# Local tool settings — machine-specific, not part of the app
+.claude/settings.local.json
+
+# Python bytecode from serve.py
+__pycache__/
+*.py[cod]
+
+# Local server output
+*.log
+
+# Journal entries never live in this folder — they are in your browser's
+# local storage — but exports land wherever you download them. Keep any that
+# end up here out of the repo.
+lumen-*.json
