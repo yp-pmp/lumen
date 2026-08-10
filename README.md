@@ -241,5 +241,9 @@ without reshaping anything.
   night). It is meant to be noticed only if you go looking.
 - `prefers-reduced-motion` disables every animation, including the drifting
   background wash. Nothing depends on motion to be legible.
+- Every piece of text meets WCAG AA contrast (4.5:1) in both themes. The ink
+  ramp stops at `--ink-faint`; `--ink-ghost` is lighter than that threshold and
+  is reserved for decoration — separators, empty calendar days, progress dots —
+  so putting text in it would reintroduce the problem.
 - Dark mode is a different room, not an inverted one: warm near-black, cream
   type, and a recessed accent so the primary button doesn't shout at midnight.

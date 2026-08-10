@@ -59,7 +59,10 @@
   --bg-sunk: #f4efe6;
   --ink: #2b2a26;
   --ink-soft: #5b564c;
-  --ink-faint: #8d867a;
+  --ink-faint: #716c62;
+  /* Decorative only — separators, empty calendar days, progress dots. Never
+     put text in this: it does not meet the 4.5:1 contrast minimum, and it is
+     not meant to. Text stops at --ink-faint. */
   --ink-ghost: #b3ab9c;
   --rule: rgba(43, 42, 38, 0.11);
   --rule-strong: rgba(43, 42, 38, 0.2);
@@ -90,7 +93,7 @@
   --dark-bg-sunk: #141210;
   --dark-ink: #e9e2d4;
   --dark-ink-soft: #b2aa9a;
-  --dark-ink-faint: #857d6f;
+  --dark-ink-faint: #918a7d;
   --dark-ink-ghost: #5f584e;
   --dark-rule: rgba(233, 226, 212, 0.13);
   --dark-rule-strong: rgba(233, 226, 212, 0.24);
