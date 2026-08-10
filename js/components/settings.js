@@ -3,6 +3,7 @@
 import { el, announce, replace } from "../utils/dom.js";
 import * as store from "../store.js";
 import { buildDemoEntries } from "../data/demo.js";
+import { aboutGroup } from "./about.js";
 
 export function openSettings({ onChange }) {
   const existing = document.getElementById("lumen-settings");
@@ -114,9 +115,11 @@ export function openSettings({ onChange }) {
         dataRow,
         importNote,
         el("p.sheet__note", {
-          text: "Everything you write is stored only in this browser, on this device — a phone keeps its own journal. Export here, then bring that file in on the other device to join them up.",
+          text: "Export writes a file holding your pages and photographs. Bring in a backup reads one back, merging rather than replacing.",
         }),
       ]),
+
+      aboutGroup(),
 
       el("div.sheet__close", {}, [
         el("button.btn.btn--ghost", { type: "button", text: "Close", onclick: () => dialog.close() }),

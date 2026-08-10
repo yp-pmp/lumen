@@ -130,7 +130,7 @@ body {
 }
 
 /* --- focus ---------------------------------------------------------------- */
-:where(a, button, input, textarea, select, [tabindex]):focus-visible {
+:where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
   border-radius: 2px;
@@ -1042,6 +1042,9 @@ mark {
   padding: var(--s-6);
   max-width: 26rem;
   width: calc(100vw - 2 * var(--gutter));
+  max-height: calc(100dvh - 3rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   box-shadow: var(--shadow);
 }
 .sheet::backdrop { background: rgba(20, 18, 15, 0.34); backdrop-filter: blur(2px); }
@@ -1076,7 +1079,51 @@ mark {
   background: var(--accent-wash);
 }
 .sheet__row { display: flex; flex-wrap: wrap; gap: var(--s-4); align-items: baseline; }
-.sheet__note { font-size: var(--t-small); color: var(--ink-faint); margin-top: var(--s-2); line-height: 1.5; }
+
+/* --- About this journal --------------------------------------------------- */
+/* Collapsed by default: the explanation is there for whoever wants it without
+   turning Settings into a page of prose. */
+.about__lead { margin-bottom: var(--s-2); }
+
+.about__item {
+  border-top: 1px solid var(--rule);
+}
+.about__item:first-of-type { border-top: 0; }
+
+.about__summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-3);
+  padding: var(--s-3) 0;
+  font-size: var(--t-small);
+  color: var(--ink-soft);
+  transition: color var(--dur) var(--ease);
+}
+.about__summary::-webkit-details-marker { display: none; }
+.about__summary::marker { content: ""; }
+.about__summary:hover { color: var(--ink); }
+.about__summary::after {
+  content: "+";
+  margin-left: auto;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--ink-ghost);
+  transition: transform var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.about__item[open] > .about__summary { color: var(--ink); }
+.about__item[open] > .about__summary::after { content: "−"; color: var(--ink-faint); }
+
+.about__text {
+  font-size: var(--t-small);
+  line-height: 1.6;
+  color: var(--ink-soft);
+  padding-bottom: var(--s-3);
+  max-width: 42ch;
+}
+.about__text + .about__text { margin-top: calc(-1 * var(--s-2)); }
+.sheet__note { font-size: var(--t-small); color: var(--ink-soft); margin-top: var(--s-2); line-height: 1.5; }
 .sheet__close { margin-top: var(--s-5); }
 
 

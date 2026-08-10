@@ -103,7 +103,7 @@ js/
   media.js            photographs — resizing, IndexedDB, export encoding
   prompts.js          invitations and the eight prompt categories
   views/              today · editor · journal · entry · reflections · onboarding
-  components/         calendar · polaroid · settings sheet
+  components/         calendar · polaroid · settings sheet · about
   utils/              dom · date · text (word counts, excerpts, theme finding)
   data/demo.js        fictional demo entries, all flagged isDemo
 ```
@@ -128,6 +128,15 @@ Pictures live in IndexedDB rather than `localStorage`, which holds about 5MB of
 strings and would be filled by a single photo. Entries keep only the ids. A page
 can be nothing but a photograph — it will appear in the archive, on Today and in
 the calendar like any other.
+
+## About this journal
+
+Settings carries a short **About this journal** section, collapsed by default,
+explaining where writing is stored, how to install it to a home screen, how the
+two-device reconciliation works and what its limits are. It is written for
+someone arriving at the link cold — worth reading if you are sharing LUMEN with
+anyone, since there are no accounts and nothing recovers a journal that a
+browser has cleared.
 
 ## Privacy
 

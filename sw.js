@@ -28,6 +28,7 @@ const PRECACHE = [
   "./js/store.js",
   "./js/media.js",
   "./js/prompts.js",
+  "./js/components/about.js",
   "./js/components/calendar.js",
   "./js/components/polaroid.js",
   "./js/components/settings.js",
