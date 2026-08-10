@@ -1,11 +1,12 @@
 /* The Today screen. Date, greeting, an invitation, one clear way in. */
 
-import { el } from "../utils/dom.js";
+import { el, replace } from "../utils/dom.js";
 import { go } from "../router.js";
 import * as store from "../store.js";
 import { invitationFor } from "../prompts.js";
 import { excerpt, hashString } from "../utils/text.js";
 import { longDate, greeting, todayKey, timeOfDay, plainDate, daysBetween } from "../utils/date.js";
+import { saveACopy } from "../backup.js";
 
 export function render() {
   const today = todayKey();
@@ -25,7 +26,66 @@ export function render() {
   const memory = remembrance(today);
   if (memory) view.append(memory);
 
+  const notice = backupNotice();
+  if (notice) view.append(notice);
+
   return view;
+}
+
+/**
+ * A rare, quiet word about keeping a copy — never a notification, never a
+ * streak, and never anything that implies your writing has gone anywhere.
+ * It appears at the foot of the page and can be sent away for a month.
+ */
+function backupNotice() {
+  const nudge = store.backupNudge();
+  if (!nudge) return null;
+
+  const block = el("aside.keepsafe");
+
+  const draw = () => {
+    replace(block,
+      el("p.keepsafe__lead", {
+        text: nudge.everSaved
+          ? "It's been a while since you saved a copy of your journal."
+          : `${nudge.pages} pages, and no copy saved yet.`,
+      }),
+      el("p.keepsafe__body", {
+        text: "Your writing is yours and it stays on this device — saving a copy doesn't send it anywhere. It's a file, kept in case this browser is ever cleared.",
+      }),
+      el("div.keepsafe__actions", {}, [
+        el("button.link", {
+          type: "button",
+          text: "Save a copy",
+          onclick: async (event) => {
+            const button = event.currentTarget;
+            button.disabled = true;
+            button.textContent = "Saving…";
+            try {
+              await saveACopy();
+              replace(block, el("p.keepsafe__done", {
+                text: "Saved to this device. Keep it somewhere you'd keep a photo album.",
+              }));
+            } catch (error) {
+              button.disabled = false;
+              button.textContent = "Save a copy";
+            }
+          },
+        }),
+        el("button.link.link--mute", {
+          type: "button",
+          text: "Not now",
+          onclick: () => {
+            store.snoozeBackupNotice();
+            block.remove();
+          },
+        }),
+      ])
+    );
+  };
+
+  draw();
+  return block;
 }
 
 function actions(todaysPages) {

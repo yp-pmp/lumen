@@ -7,6 +7,7 @@
    rather than discover it after losing something. */
 
 import { el } from "../utils/dom.js";
+import { durability } from "../store.js";
 
 /** Already launched from a home screen or dock? Then the advice is moot. */
 function isInstalled() {
@@ -38,10 +39,26 @@ const SECTIONS = [
   },
   {
     title: "Keeping it safe",
+    lines: () => {
+      const lines = [
+        "Local storage is durable, but it is not a backup. Clearing site data — or “Clear History and Website Data” — takes the journal with it, and nobody can recover it for you, because nobody else has it.",
+      ];
+      if (durability() === true) {
+        lines.push("This browser has agreed to keep LUMEN's storage rather than clear it to reclaim space. That helps, but it does not survive you clearing site data yourself.");
+      } else {
+        lines.push("LUMEN asks the browser to keep its storage rather than clear it to reclaim space. Browsers decide for themselves, and adding LUMEN to your home screen makes a yes more likely.");
+      }
+      lines.push("Deleting a page happens immediately and cannot be undone.");
+      return lines;
+    },
+  },
+  {
+    title: "Recommended backup schedule",
     lines: () => [
-      "Local storage is durable, but it is not a backup. Clearing site data — or “Clear History and Website Data” — takes the journal with it.",
-      "Use Export everything now and then and keep the file somewhere you trust. It contains your pages and photographs, so treat it as private.",
-      "Deleting a page happens immediately and cannot be undone.",
+      "If you write most weeks: save a copy once a month. If you write occasionally: every few months is plenty.",
+      "Always save one before changing phone or computer, before clearing your browser's data, and before deleting the app from your home screen.",
+      "Keep the file where you keep things you would be sorry to lose — a cloud drive, or wherever your photographs go. It is an ordinary file on your device; saving it sends nothing anywhere.",
+      "Every so often, if it has been a long while and there are new pages, LUMEN will show a quiet note at the foot of Today offering to save one. It appears two or three times a year at most, it can be sent away, and it is the only reminder there is — no emails, no notifications, nothing that reaches you outside the app.",
     ],
   },
   {
@@ -65,7 +82,7 @@ export function aboutGroup() {
   const group = el("div.sheet__group", {}, [
     el("p.sheet__label", { text: "About this journal" }),
     el("p.sheet__note.about__lead", {
-      text: "LUMEN keeps everything on the device you write it on. There is no account, and nothing is ever uploaded.",
+      text: "Your writing belongs to you and stays on the device you wrote it on. There is no account, nothing is ever uploaded, and nobody else — including whoever shared this link — can read a word of it. Saving a backup is only ever about making sure a cleared browser can't take it from you.",
     }),
   ]);
 

@@ -18,9 +18,19 @@ const KEYS = {
 };
 
 const DEFAULT_SETTINGS = {
-  theme: "auto",   // auto | light | dark
+  theme: "auto",         // auto | light | dark
   onboarded: false,
+  lastExportAt: null,    // when a copy was last saved to this device
+  backupNoticeSnoozedAt: null,
+  durabilityAskedAt: null,
 };
+
+/* How rarely the backup notice may speak. A journal is not a to-do list and
+   this is not a nag: on these numbers it surfaces two or three times a year. */
+const BACKUP_MIN_PAGES = 10;
+const BACKUP_MIN_UNSAVED = 5;
+const BACKUP_INTERVAL_DAYS = 90;
+const BACKUP_SNOOZE_DAYS = 30;
 
 const MOODS = ["Peaceful", "Happy", "Reflective", "Energized", "Tired", "Anxious", "Sad", "Grateful"];
 
@@ -247,6 +257,73 @@ export function getReflection(ym) {
 export function saveReflection(ym, note) {
   reflections[ym] = { note, updatedAt: new Date().toISOString() };
   writeJSON(KEYS.reflections, reflections);
+}
+
+/* --- keeping a copy ------------------------------------------------------- */
+
+function daysSince(iso) {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return Infinity;
+  return (Date.now() - then) / 86400000;
+}
+
+export function recordExport() {
+  updateSettings({ lastExportAt: new Date().toISOString(), backupNoticeSnoozedAt: null });
+}
+
+export function snoozeBackupNotice() {
+  updateSettings({ backupNoticeSnoozedAt: new Date().toISOString() });
+}
+
+/**
+ * Whether it is worth mentioning a backup, and nothing more than that.
+ * Returns null far more often than not.
+ */
+export function backupNudge() {
+  const pages = entries.filter(hasSubstance);
+  if (pages.length < BACKUP_MIN_PAGES) return null;
+
+  const { lastExportAt, backupNoticeSnoozedAt } = settings;
+  if (backupNoticeSnoozedAt && daysSince(backupNoticeSnoozedAt) < BACKUP_SNOOZE_DAYS) return null;
+  if (lastExportAt && daysSince(lastExportAt) < BACKUP_INTERVAL_DAYS) return null;
+
+  const since = lastExportAt ? new Date(lastExportAt).getTime() : 0;
+  const unsaved = pages.filter((entry) => new Date(entry.updatedAt).getTime() > since).length;
+  if (unsaved < BACKUP_MIN_UNSAVED) return null;
+
+  return { pages: pages.length, unsaved, everSaved: Boolean(lastExportAt) };
+}
+
+/* --- durability ----------------------------------------------------------- */
+
+let durable = null;   // resolved once at startup, for display only
+
+export function durability() {
+  return durable;
+}
+
+/**
+ * Ask the browser to treat this journal as worth keeping. Without it, storage
+ * is evictable when the device runs short of space. Chrome decides silently;
+ * Firefox may ask; Safari applies its own judgement. Asking again after a
+ * refusal is worthwhile, since the answer can change once an app is installed.
+ */
+export async function requestDurableStorage() {
+  if (!navigator.storage?.persist) return null;
+
+  try {
+    durable = await navigator.storage.persisted();
+    if (durable) return true;
+
+    const { durabilityAskedAt } = settings;
+    if (durabilityAskedAt && daysSince(durabilityAskedAt) < 30) return false;
+
+    updateSettings({ durabilityAskedAt: new Date().toISOString() });
+    durable = await navigator.storage.persist();
+    return durable;
+  } catch (error) {
+    return null;
+  }
 }
 
 /* --- derived ------------------------------------------------------------- */

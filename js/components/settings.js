@@ -4,6 +4,7 @@ import { el, announce, replace } from "../utils/dom.js";
 import * as store from "../store.js";
 import { buildDemoEntries } from "../data/demo.js";
 import { aboutGroup } from "./about.js";
+import { saveACopy } from "../backup.js";
 
 export function openSettings({ onChange }) {
   const existing = document.getElementById("lumen-settings");
@@ -62,7 +63,7 @@ export function openSettings({ onChange }) {
     const importNote = el("p.sheet__note", { role: "status", "aria-live": "polite", hidden: true });
 
     const dataRow = el("div.sheet__row", {}, [
-      el("button.link", { type: "button", text: "Export everything", onclick: exportAll }),
+      el("button.link", { type: "button", text: "Export everything", onclick: () => saveACopy() }),
       el("button.link", {
         type: "button",
         text: "Bring in a backup",
@@ -168,16 +169,4 @@ function importFile(note, onChange) {
 
   document.body.append(picker);
   picker.click();
-}
-
-async function exportAll() {
-  const data = await store.exportData();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = el("a", { href: url, download: `lumen-${new Date().toISOString().slice(0, 10)}.json` });
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  announce("Export downloaded");
 }

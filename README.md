@@ -100,6 +100,7 @@ js/
   app.js              mounts views, sets the theme and the time-of-day light
   router.js           hash routing (#/journal, #/entry/:id, …)
   store.js            local-first persistence for text and metadata
+  backup.js           saving a copy to the device
   media.js            photographs — resizing, IndexedDB, export encoding
   prompts.js          invitations and the eight prompt categories
   views/              today · editor · journal · entry · reflections · onboarding
@@ -207,8 +208,27 @@ merge, not a three-way diff.
 ## Keeping your writing
 
 Local storage is durable but it is not a backup: clearing site data in your
-browser will take the journal with it. If the journal starts to matter, export
-it from Settings now and then.
+browser will take the journal with it, and nobody can recover it for you,
+because nobody else has a copy.
+
+**Recommended rhythm.** Writing most weeks: save a copy monthly. Writing
+occasionally: every few months. Always before changing device, clearing browser
+data, or removing the app from a home screen.
+
+**The notice.** If there are at least ten pages and either no copy has ever
+been saved or the last one was over 90 days and five pages ago, LUMEN shows a
+quiet line at the foot of Today offering to save one. "Not now" silences it for
+30 days; saving resets it. On those thresholds it appears two or three times a
+year. It is the only reminder that exists — there are no notifications and no
+emails, because there is no server to send them and adding one would undo the
+privacy model.
+
+**Durability.** Once there is something to protect, LUMEN calls
+`navigator.storage.persist()` to ask the browser not to evict its storage when
+the device runs short of space. Browsers decide for themselves — Chrome
+silently, Firefox may prompt, Safari by its own heuristics — and an installed
+home-screen app is likelier to be granted it. The request is repeated at most
+once a month, since a refusal can become a yes later.
 
 ## Data shape
 

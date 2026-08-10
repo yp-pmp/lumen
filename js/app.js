@@ -176,6 +176,13 @@ function begin() {
   // import. Harmless if it fails; it only reclaims space.
   media.pruneOrphans(store.referencedImages()).catch(() => {});
 
+  // Ask the browser not to evict this journal under storage pressure. Only
+  // once there is something to protect, so a first-time visitor is never
+  // asked on behalf of an empty journal.
+  if (store.allEntries().some(store.hasSubstance)) {
+    store.requestDurableStorage().catch(() => {});
+  }
+
   const settings = store.getSettings();
   if (!settings.onboarded) {
     // Nothing behind the introduction should be reachable by tab or by
