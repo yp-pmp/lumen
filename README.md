@@ -99,17 +99,40 @@ styles/
 js/
   app.js              mounts views, sets the theme and the time-of-day light
   router.js           hash routing (#/journal, #/entry/:id, …)
-  store.js            local-first persistence; the only file that touches storage
+  store.js            local-first persistence for text and metadata
+  media.js            photographs — resizing, IndexedDB, export encoding
   prompts.js          invitations and the eight prompt categories
   views/              today · editor · journal · entry · reflections · onboarding
-  components/         calendar · settings sheet
+  components/         calendar · polaroid · settings sheet
   utils/              dom · date · text (word counts, excerpts, theme finding)
   data/demo.js        fictional demo entries, all flagged isDemo
 ```
 
+## Photographs
+
+A page can hold photographs. **Add a photograph** in the editor opens the
+picker — on a phone that offers the camera as well as the library.
+
+Each one is resized to fit a 1600px box and re-encoded as JPEG, which takes a
+typical phone photo from several megabytes to a few hundred kilobytes. That
+matters twice over: pictures have to fit in browser storage, and they have to
+travel inside an export. Re-encoding also **strips the EXIF block**, so the GPS
+coordinates a phone writes into a photo never reach storage or a backup file.
+
+The polaroid look — the mount, the deep lower margin, the slight tilt — is
+presentation only, done in CSS. **The stored picture is the picture you took**,
+uncropped and unfiltered, so the styling can change later, or come off
+entirely, without having damaged anything.
+
+Pictures live in IndexedDB rather than `localStorage`, which holds about 5MB of
+strings and would be filled by a single photo. Entries keep only the ids. A page
+can be nothing but a photograph — it will appear in the archive, on Today and in
+the calendar like any other.
+
 ## Privacy
 
-- Entries are written to `localStorage` under `lumen.v1.*` and nowhere else.
+- Entries are written to `localStorage` under `lumen.v1.*`, and photographs to
+  an IndexedDB database called `lumen`. Both are local to this browser.
 - `lumen.v1.deleted` keeps the ids and timestamps of deleted pages so that
   deletions can travel between devices. It holds no journal text — deleting a
   page still destroys its content immediately and irreversibly.
@@ -122,8 +145,10 @@ js/
 - The "words that kept returning" list on a monthly reflection is counted in
   `js/utils/text.js`, in your browser, over your own text. Nothing is sent out
   to produce it.
-- **Export everything** in Settings downloads a JSON file of your entries, and
-  **Bring in a backup** reads one back. Both happen in the browser: the file is
+- Photographs are re-encoded on the way in, which discards EXIF — including
+  the GPS coordinates a phone records. Location never enters storage.
+- **Export everything** in Settings downloads a JSON file of your entries and
+  photographs, and **Bring in a backup** reads one back. Both happen in the browser: the file is
   parsed locally and never uploaded. Where the exported file goes afterwards is
   up to you.
 
@@ -152,6 +177,8 @@ that action was an edit or a deletion:
 - The earlier `createdAt` is kept — an edit elsewhere doesn't rewrite when a
   page was started.
 - Month reflection notes follow the same newest-wins rule.
+- Photographs travel with the pages that reference them, and one already on
+  this device is never written twice.
 
 Deletions travel because the export carries a `deleted` map of `id → when`.
 Those records hold no content, only that a page with that id was deleted and
@@ -186,6 +213,7 @@ it from Settings now and then.
   prompt,          // the prompt text, or null
   promptCategory,  // "Gratitude", "Work", … or null
   wordCount,
+  images,          // ids of photographs, kept in IndexedDB
   isDemo,          // only on demo entries
 }
 ```

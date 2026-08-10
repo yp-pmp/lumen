@@ -10,7 +10,7 @@ import { longDate, greeting, todayKey, timeOfDay, plainDate, daysBetween } from 
 export function render() {
   const today = todayKey();
   const now = new Date();
-  const todaysPages = store.entriesOn(today).filter((entry) => entry.content.trim());
+  const todaysPages = store.entriesOn(today).filter(store.hasSubstance);
 
   const view = el("div.wrap.today.stagger", {}, [
     el("p.today__date", { text: longDate(today) }),
@@ -78,7 +78,10 @@ function todaySection(pages) {
           onclick: () => go(`/entry/${entry.id}`),
         }, [
           el("span.pagelist__time", { text: timeOfDay(entry.createdAt) }),
-          el("span.pagelist__text", { text: excerpt(entry.content, 140) }),
+          el("span.pagelist__text", {
+            text: entry.content.trim() ? excerpt(entry.content, 140) : "A photograph.",
+            dataset: { wordless: String(!entry.content.trim()) },
+          }),
         ]),
       ])
     );
@@ -96,7 +99,8 @@ function todaySection(pages) {
  *   otherwise an older page, surfaced only now and then.
  */
 function remembrance(today) {
-  const anniversaries = store.onThisDay(today);
+  // Both kinds of looking back quote a passage, so a wordless page can't be one.
+  const anniversaries = store.onThisDay(today).filter((entry) => entry.content.trim());
   if (anniversaries.length) {
     const entry = anniversaries[0];
     const years = Number(today.slice(0, 4)) - Number(entry.date.slice(0, 4));

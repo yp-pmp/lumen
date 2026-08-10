@@ -5,6 +5,8 @@ import { go, back } from "../router.js";
 import * as store from "../store.js";
 import { longDate, timeOfDay, relativeTime } from "../utils/date.js";
 import { readingTime } from "../utils/text.js";
+import { deleteImages } from "../media.js";
+import { polaroidRow } from "../components/polaroid.js";
 
 export function render({ params }) {
   const entry = store.getEntry(params.id);
@@ -24,7 +26,8 @@ export function render({ params }) {
     ]),
 
     entry.prompt ? el("p.page__prompt", { text: entry.prompt }) : null,
-    el("div.page__content", { text: entry.content }),
+    entry.content ? el("div.page__content", { text: entry.content }) : null,
+    entry.images?.length ? polaroidRow(entry.images, { takenOn: entry.date }) : null,
     actions,
   ]);
 
@@ -52,7 +55,10 @@ export function render({ params }) {
         type: "button",
         text: "Delete",
         onclick: () => {
+          const photographs = entry.images || [];
           store.deleteEntry(entry.id);
+          // The page is gone; its pictures shouldn't linger in storage.
+          deleteImages(photographs).catch(() => {});
           announce("Page deleted");
           go("/journal", { replace: true });
         },

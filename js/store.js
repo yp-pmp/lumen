@@ -8,6 +8,7 @@
 
 import { dayKey, monthKey, todayKey, daysBetween } from "./utils/date.js";
 import { countWords } from "./utils/text.js";
+import * as media from "./media.js";
 
 const KEYS = {
   entries: "lumen.v1.entries",
@@ -127,8 +128,14 @@ function normalise(entry) {
     prompt: typeof entry.prompt === "string" && entry.prompt ? entry.prompt : null,
     promptCategory: typeof entry.promptCategory === "string" ? entry.promptCategory : null,
     wordCount: typeof entry.wordCount === "number" ? entry.wordCount : countWords(content),
+    images: Array.isArray(entry.images) ? entry.images.filter((id) => typeof id === "string") : [],
     isDemo: entry.isDemo === true || undefined,
   };
+}
+
+/** A page counts if it holds words or a photograph. */
+export function hasSubstance(entry) {
+  return Boolean(entry?.content?.trim()) || (entry?.images?.length > 0);
 }
 
 export function isPersistent() {
@@ -165,6 +172,7 @@ export function createEntry({ date = todayKey(), prompt = null, promptCategory =
     prompt,
     promptCategory,
     wordCount: 0,
+    images: [],
   };
 }
 
@@ -243,6 +251,10 @@ export function saveReflection(ym, note) {
 
 /* --- derived ------------------------------------------------------------- */
 
+export function referencedImages() {
+  return entries.flatMap((entry) => entry.images || []);
+}
+
 export function moodList() {
   return MOODS;
 }
@@ -254,7 +266,7 @@ export function moodList() {
  * `sinceLast` days since the most recent page
  */
 export function rhythm() {
-  const days = new Set(entries.filter((entry) => entry.content.trim()).map((entry) => entry.date));
+  const days = new Set(entries.filter(hasSubstance).map((entry) => entry.date));
   const today = todayKey();
 
   let run = 0;
@@ -281,7 +293,7 @@ export function rhythm() {
     run,
     recent,
     totalDays: days.size,
-    totalEntries: entries.filter((entry) => entry.content.trim()).length,
+    totalEntries: entries.filter(hasSubstance).length,
     lastDay: last,
     sinceLast: last ? daysBetween(last, today) : null,
   };
@@ -298,7 +310,7 @@ export function onThisDay(key = todayKey()) {
   const [, month, day] = key.split("-");
   const thisYear = key.slice(0, 4);
   return entries.filter((entry) => {
-    if (!entry.content.trim()) return false;
+    if (!hasSubstance(entry)) return false;
     const [year, m, d] = entry.date.split("-");
     return m === month && d === day && year < thisYear;
   });
@@ -308,7 +320,7 @@ export function onThisDay(key = todayKey()) {
 export function search(query, { mood = "", month = "", date = "" } = {}) {
   const needle = query.trim().toLowerCase();
   return entries.filter((entry) => {
-    if (!entry.content.trim()) return false;
+    if (!hasSubstance(entry)) return false;
     if (mood && entry.mood !== mood) return false;
     if (month && monthKey(entry.date) !== month) return false;
     if (date && entry.date !== date) return false;
@@ -325,7 +337,7 @@ export function search(query, { mood = "", month = "", date = "" } = {}) {
 export function monthsWithEntries() {
   const counts = new Map();
   for (const entry of entries) {
-    if (!entry.content.trim()) continue;
+    if (!hasSubstance(entry)) continue;
     const ym = monthKey(entry.date);
     counts.set(ym, (counts.get(ym) || 0) + 1);
   }
@@ -339,13 +351,19 @@ export function monthsWithEntries() {
    agree on all of these are the same page however their timestamps differ. */
 const MATERIAL_FIELDS = ["content", "mood", "prompt", "promptCategory", "date"];
 
+function sameImages(a, b) {
+  const left = a.images || [];
+  const right = b.images || [];
+  return left.length === right.length && left.every((id, index) => id === right[index]);
+}
+
 function millis(iso) {
   const value = new Date(iso).getTime();
   return Number.isNaN(value) ? 0 : value;
 }
 
 function sameContent(a, b) {
-  return MATERIAL_FIELDS.every((field) => a[field] === b[field]);
+  return MATERIAL_FIELDS.every((field) => a[field] === b[field]) && sameImages(a, b);
 }
 
 function earliest(a, b) {
@@ -366,7 +384,7 @@ function earliest(a, b) {
  *
  * Returns a summary, or throws if the file isn't a LUMEN export.
  */
-export function importData(data) {
+export async function importData(data) {
   if (!data || typeof data !== "object" || !Array.isArray(data.entries)) {
     throw new Error("not a LUMEN export");
   }
@@ -459,10 +477,19 @@ export function importData(data) {
     if (notes) writeJSON(KEYS.reflections, reflections);
   }
 
-  return { added, updated, unchanged, removed, notes };
+  // Pictures arrive before nothing else needs them: a page that references an
+  // image the file didn't carry simply shows no picture on this device.
+  const photos = await media.importImages(data.images);
+
+  return { added, updated, unchanged, removed, notes, photos };
 }
 
-export function exportData() {
+export async function exportData() {
+  /* Photographs ride along as base64 so an export stays one file you can
+     email to yourself. They are already resized to a few hundred KB each;
+     if a library ever grows large enough for this to feel heavy, a zip
+     container is the upgrade. */
+  const images = await media.exportImages([...new Set(referencedImages())]);
   return {
     app: "LUMEN",
     version: 1,
@@ -470,6 +497,7 @@ export function exportData() {
     exportedAt: new Date().toISOString(),
     entries,
     reflections,
+    images,
   };
 }
 
@@ -485,4 +513,5 @@ export function clearEverything() {
   writeJSON(KEYS.reflections, reflections);
   writeJSON(KEYS.deleted, deleted);
   writeJSON(KEYS.settings, settings);
+  media.clearAll().catch(() => {});
 }

@@ -13,7 +13,7 @@ const filters = { query: "", mood: "", month: "", date: "" };
 let visibleMonth = todayKey().slice(0, 7);
 
 export function render() {
-  const all = store.allEntries().filter((entry) => entry.content.trim());
+  const all = store.allEntries().filter(store.hasSubstance);
 
   if (!all.length) return emptyLibrary();
 
@@ -112,7 +112,7 @@ export function render() {
           drawCalendar();
         },
         onDay: (key) => {
-          const onThatDay = store.entriesOn(key).filter((entry) => entry.content.trim());
+          const onThatDay = store.entriesOn(key).filter(store.hasSubstance);
           if (onThatDay.length === 1) {
             go(`/entry/${onThatDay[0].id}`);
             return;
@@ -196,15 +196,28 @@ function entryCard(entry, query, showDate = true) {
       el("span.entry-card__mood", { text: entry.mood })
     );
   }
-  meta.append(
-    el("span.entry-card__dot", { text: "·", "aria-hidden": "true" }),
-    el("span.entry-card__read", { text: readingTime(entry.wordCount) })
-  );
+  if (entry.wordCount) {
+    meta.append(
+      el("span.entry-card__dot", { text: "·", "aria-hidden": "true" }),
+      el("span.entry-card__read", { text: readingTime(entry.wordCount) })
+    );
+  }
+  if (entry.images?.length) {
+    const count = entry.images.length;
+    meta.append(
+      el("span.entry-card__dot", { text: "·", "aria-hidden": "true" }),
+      el("span.entry-card__photos", { text: count === 1 ? "1 photograph" : `${count} photographs` })
+    );
+  }
   card.append(meta);
 
   if (entry.prompt) card.append(el("p.entry-card__prompt", { text: entry.prompt }));
 
-  card.append(el("p.entry-card__excerpt", {}, snippet(entry.content, query)));
+  if (entry.content.trim()) {
+    card.append(el("p.entry-card__excerpt", {}, snippet(entry.content, query)));
+  } else {
+    card.append(el("p.entry-card__excerpt.italic", { text: "A page with no words on it." }));
+  }
   return card;
 }
 

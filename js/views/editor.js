@@ -8,6 +8,8 @@ import * as store from "../store.js";
 import { promptFor, anotherPrompt } from "../prompts.js";
 import { longDate, todayKey } from "../utils/date.js";
 import { countWords } from "../utils/text.js";
+import * as media from "../media.js";
+import { polaroid } from "../components/polaroid.js";
 
 const CLOSING_LINES = ["That's enough for today.", "Your thoughts are here.", "This is kept."];
 
@@ -47,6 +49,7 @@ export function render({ params }) {
   const promptBlock = el("div.prompt");
   const closing = el("p.closing", { hidden: true });
   const moodBlock = el("div.mood");
+  const photoBlock = el("div.photos");
 
   const root = el("form.editor", {
     onsubmit: (event) => event.preventDefault(),
@@ -66,7 +69,7 @@ export function render({ params }) {
       promptBlock,
     ]),
     el("div.editor__body", {}, [area]),
-    el("footer.editor__foot", {}, [closing, moodBlock]),
+    el("footer.editor__foot", {}, [closing, photoBlock, moodBlock]),
   ]);
 
   if (entry.content.trim()) root.classList.add("has-content");
@@ -128,7 +131,7 @@ export function render({ params }) {
   function drawMood() {
     // A blank page shouldn't ask how you feel. The question arrives with
     // the first words, and stays once an entry already carries a mood.
-    if (!entry.content.trim() && !entry.mood) {
+    if (!entry.content.trim() && !entry.mood && !entry.images?.length) {
       moodBlock.replaceChildren();
       return;
     }
@@ -159,10 +162,75 @@ export function render({ params }) {
     );
   }
 
+
+  /* --- photographs ------------------------------------------------------ */
+
+  function drawPhotos() {
+    if (!media.isSupported()) {
+      photoBlock.replaceChildren();
+      return;
+    }
+
+    const error = el("p.photos__error", { role: "status", "aria-live": "polite", hidden: true });
+
+    const picker = el("input", {
+      type: "file",
+      accept: "image/*",
+      multiple: true,
+      hidden: true,
+      onchange: async (event) => {
+        const files = [...(event.target.files || [])];
+        event.target.value = "";
+        if (!files.length) return;
+
+        error.hidden = true;
+        for (const file of files) {
+          try {
+            const record = await media.addImage(file);
+            entry.images = [...(entry.images || []), record.id];
+            save();
+            drawPhotos();
+            drawMood();
+          } catch (problem) {
+            error.hidden = false;
+            error.textContent = problem.message || "That image couldn't be added.";
+          }
+        }
+      },
+    });
+
+    const row = el("div.polaroids");
+    for (const [index, id] of (entry.images || []).entries()) {
+      row.append(
+        polaroid(id, {
+          takenOn: entry.date,
+          index,
+          onRemove: async () => {
+            entry.images = entry.images.filter((other) => other !== id);
+            save();
+            await media.deleteImages([id]);
+            drawPhotos();
+          },
+        })
+      );
+    }
+
+    photoBlock.replaceChildren(
+      entry.images?.length ? row : null,
+      el("button.link.link--mute", {
+        type: "button",
+        text: entry.images?.length ? "Add another photograph" : "Add a photograph",
+        onclick: () => picker.click(),
+      }),
+      picker,
+      error
+    );
+  }
+
   /* --- autosave --------------------------------------------------------- */
 
   function worthKeeping() {
-    return Boolean(entry.content.trim()) || Boolean(entry.mood);
+    return Boolean(entry.content.trim()) || Boolean(entry.mood) || (entry.images?.length > 0);
   }
 
   function save() {
@@ -247,6 +315,7 @@ export function render({ params }) {
 
   drawPrompt();
   drawMood();
+  drawPhotos();
 
   // Focus the writing area the moment the page opens.
   requestAnimationFrame(() => {

@@ -14,6 +14,7 @@ import * as journal from "./views/journal.js";
 import * as entryView from "./views/entry.js";
 import * as reflections from "./views/reflections.js";
 import { partOfDay } from "./utils/date.js";
+import * as media from "./media.js";
 
 const VIEWS = {
   today: today.render,
@@ -170,6 +171,10 @@ function begin() {
 
   if (!store.isPersistent()) warnAboutStorage();
   registerServiceWorker();
+
+  // Pictures left behind by a page deleted in another tab, or replaced by an
+  // import. Harmless if it fails; it only reclaims space.
+  media.pruneOrphans(store.referencedImages()).catch(() => {});
 
   const settings = store.getSettings();
   if (!settings.onboarded) {

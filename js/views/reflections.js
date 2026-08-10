@@ -7,7 +7,7 @@ import { monthTitle, monthKey, todayKey, plainDate } from "../utils/date.js";
 import { excerpt, findThemes } from "../utils/text.js";
 
 export function render() {
-  const entries = store.allEntries().filter((entry) => entry.content.trim());
+  const entries = store.allEntries().filter(store.hasSubstance);
   const thisMonth = monthKey(todayKey());
   const monthEntries = entries.filter((entry) => monthKey(entry.date) === thisMonth);
   const months = store.monthsWithEntries();
@@ -108,7 +108,7 @@ function monthList(months) {
 
 export function renderMonth({ params }) {
   const ym = params.ym;
-  const entries = store.entriesInMonth(ym).filter((entry) => entry.content.trim());
+  const entries = store.entriesInMonth(ym).filter(store.hasSubstance);
 
   if (!entries.length) {
     return el("div.wrap", {}, [
@@ -192,7 +192,8 @@ function pages(ym, entries) {
   const name = monthTitle(ym).split(",")[0];
 
   // Longest, shortest and one from the middle — a fair sample of the month.
-  const byLength = [...entries].sort((a, b) => b.wordCount - a.wordCount);
+  const byLength = entries.filter((entry) => entry.content.trim()).sort((a, b) => b.wordCount - a.wordCount);
+  if (!byLength.length) return el("div");
   const picks = [];
   const seen = new Set();
   for (const candidate of [byLength[0], byLength[Math.floor(byLength.length / 2)], byLength[byLength.length - 1]]) {

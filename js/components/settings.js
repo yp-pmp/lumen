@@ -146,12 +146,13 @@ function importFile(note, onChange) {
     note.textContent = "Reading…";
 
     try {
-      const result = store.importData(JSON.parse(await file.text()));
+      const result = await store.importData(JSON.parse(await file.text()));
       const parts = [];
       if (result.added) parts.push(`${result.added} ${result.added === 1 ? "page" : "pages"} added`);
       if (result.updated) parts.push(`${result.updated} updated`);
       if (result.removed) parts.push(`${result.removed} removed`);
       if (result.unchanged) parts.push(`${result.unchanged} already up to date`);
+      if (result.photos) parts.push(`${result.photos} ${result.photos === 1 ? "photograph" : "photographs"}`);
       if (result.notes) parts.push(`${result.notes} month ${result.notes === 1 ? "note" : "notes"}`);
       note.textContent = parts.length ? `${parts.join(", ")}.` : "Nothing in that file.";
       announce(note.textContent);
@@ -166,8 +167,8 @@ function importFile(note, onChange) {
   picker.click();
 }
 
-function exportAll() {
-  const data = store.exportData();
+async function exportAll() {
+  const data = await store.exportData();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = el("a", { href: url, download: `lumen-${new Date().toISOString().slice(0, 10)}.json` });
