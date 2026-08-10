@@ -1,6 +1,6 @@
 /* Reading a single page back. */
 
-import { el, icon, announce } from "../utils/dom.js";
+import { el, icon, announce, replace } from "../utils/dom.js";
 import { go, back } from "../router.js";
 import * as store from "../store.js";
 import { longDate, timeOfDay, relativeTime } from "../utils/date.js";
@@ -34,7 +34,7 @@ export function render({ params }) {
   drawActions();
 
   function drawActions() {
-    actions.replaceChildren(
+    replace(actions,
       el("button.link", {
         type: "button",
         text: "Edit this page",
@@ -65,7 +65,7 @@ export function render({ params }) {
       }),
       el("button.link.link--mute", { type: "button", text: "Keep it", onclick: () => drawActions() }),
     ]);
-    actions.replaceChildren(confirm);
+    replace(actions, confirm);
     confirm.querySelector("button").focus();
   }
 

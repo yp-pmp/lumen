@@ -1,6 +1,6 @@
 /* Three quiet screens. Skippable at any moment. */
 
-import { el } from "../utils/dom.js";
+import { el, replace } from "../utils/dom.js";
 
 const SLIDES = [
   { lines: ["A quiet place for your thoughts."] },
@@ -38,7 +38,7 @@ export function onboarding({ onFinish }) {
   ]);
 
   function draw() {
-    slide.replaceChildren(
+    replace(slide,
       ...SLIDES[index].lines.map((line) => el("p.onboard__text", { text: line }))
     );
     // Restart the entrance animation on each slide.
@@ -49,7 +49,7 @@ export function onboarding({ onFinish }) {
     nextButton.textContent = index === SLIDES.length - 1 ? "Begin" : "Next";
     skipButton.hidden = index === SLIDES.length - 1;
 
-    dots.replaceChildren(
+    replace(dots,
       ...SLIDES.map((_, i) => el("span.onboard__dot", { dataset: { on: String(i === index) } }))
     );
     nextButton.focus();

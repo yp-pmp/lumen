@@ -2,7 +2,7 @@
    No toolbar. Autosave. The page persists itself the moment there is
    something worth keeping, and quietly discards itself if there isn't. */
 
-import { el, icon, debounce, announce } from "../utils/dom.js";
+import { el, icon, debounce, announce, replace } from "../utils/dom.js";
 import { go, back } from "../router.js";
 import * as store from "../store.js";
 import { promptFor, anotherPrompt } from "../prompts.js";
@@ -156,7 +156,7 @@ export function render({ params }) {
       if (index < moods.length - 1) options.append(el("span.mood__sep", { text: "·", "aria-hidden": "true" }));
     });
 
-    moodBlock.replaceChildren(
+    replace(moodBlock,
       el("p.mood__label", { id: "mood-label", text: "If you'd like — how did it feel?" }),
       options
     );
@@ -215,7 +215,7 @@ export function render({ params }) {
       );
     }
 
-    photoBlock.replaceChildren(
+    replace(photoBlock,
       entry.images?.length ? row : null,
       el("button.link.link--mute", {
         type: "button",

@@ -1,6 +1,6 @@
 /* The archive — a personal library, laid out as a timeline. */
 
-import { el, icon, debounce } from "../utils/dom.js";
+import { el, icon, debounce, replace } from "../utils/dom.js";
 import { go } from "../router.js";
 import * as store from "../store.js";
 import { calendar } from "../components/calendar.js";
@@ -101,7 +101,7 @@ export function render() {
     const counts = new Map();
     for (const entry of all) counts.set(entry.date, (counts.get(entry.date) || 0) + 1);
 
-    calendarSlot.replaceChildren(
+    replace(calendarSlot,
       calendar({
         month: visibleMonth,
         counts,

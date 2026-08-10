@@ -1,6 +1,6 @@
 /* A small sheet, out of the way: appearance, demo pages, your data. */
 
-import { el, announce } from "../utils/dom.js";
+import { el, announce, replace } from "../utils/dom.js";
 import * as store from "../store.js";
 import { buildDemoEntries } from "../data/demo.js";
 
@@ -89,11 +89,11 @@ export function openSettings({ onChange }) {
         }),
         el("button.link.link--mute", { type: "button", text: "Cancel", onclick: () => draw() }),
       ]);
-      trigger.parentElement.replaceChildren(confirm);
+      replace(trigger.parentElement, confirm);
       confirm.querySelector("button").focus();
     }
 
-    dialog.replaceChildren(
+    replace(dialog,
       el("h2.sheet__title", { text: "Settings" }),
 
       el("div.sheet__group", {}, [

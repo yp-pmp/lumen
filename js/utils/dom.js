@@ -48,6 +48,16 @@ export function clear(node) {
   return node;
 }
 
+/**
+ * Swap a node's contents. Use this rather than replaceChildren(): the native
+ * method stringifies a null child into the literal text "null", which is how
+ * you end up with the word printed on the page.
+ */
+export function replace(parent, ...children) {
+  clear(parent);
+  return append(parent, children);
+}
+
 /** Inline icons, drawn thin to match the type. */
 const PATHS = {
   back: '<path d="M11 3.5 5.5 9l5.5 5.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>',
