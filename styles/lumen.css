@@ -16,6 +16,11 @@ html {
   scroll-behavior: smooth;
 }
 
+/* While writing, scrolling must be instant. Any correction the browser makes
+   around the caret would otherwise animate, which reads as the page drifting
+   away under your hands. */
+html.is-writing { scroll-behavior: auto; }
+
 body {
   min-height: 100svh;
   background: var(--bg);

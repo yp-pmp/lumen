@@ -278,6 +278,11 @@ without reshaping anything.
   night). It is meant to be noticed only if you go looking.
 - `prefers-reduced-motion` disables every animation, including the drifting
   background wash. Nothing depends on motion to be legible.
+- The editor's textarea grows without ever collapsing to `height: auto` first.
+  Collapsing shrinks the document for one layout pass, which makes the browser
+  clamp the scroll position and throws a long page away from the caret on every
+  keystroke. It only re-measures from scratch when the text got shorter, and
+  smooth scrolling is switched off while writing so no correction animates.
 - Every piece of text meets WCAG AA contrast (4.5:1) in both themes. The ink
   ramp stops at `--ink-faint`; `--ink-ghost` is lighter than that threshold and
   is reserved for decoration — separators, empty calendar days, progress dots —

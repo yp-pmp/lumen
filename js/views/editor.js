@@ -254,9 +254,34 @@ export function render({ params }) {
     if (status.textContent === "Saved just now") status.textContent = "Saved";
   }, 6000);
 
-  function grow() {
-    area.style.height = "auto";
-    area.style.height = `${area.scrollHeight}px`;
+  /**
+   * Keep the writing area as tall as its text.
+   *
+   * The obvious implementation — set the height to "auto", then to
+   * scrollHeight — collapses the textarea for one layout pass. On a long page
+   * that shrinks the document from thousands of pixels to a few hundred, the
+   * browser clamps the scroll position to fit, and the page leaps away from
+   * the caret on every keystroke.
+   *
+   * So: only measure from scratch when the text may have got *shorter*, which
+   * is the only time the height needs to come down. Typing forwards never
+   * collapses anything. Either way the scroll position is put back if the
+   * layout moved it.
+   */
+  let measuredLength = area.value.length;
+
+  function grow({ remeasure = false } = {}) {
+    const scroller = document.scrollingElement || document.documentElement;
+    const top = scroller.scrollTop;
+    const shrank = area.value.length < measuredLength;
+    measuredLength = area.value.length;
+
+    if (shrank || remeasure) area.style.height = "auto";
+    if (area.scrollHeight !== area.clientHeight) {
+      area.style.height = `${area.scrollHeight}px`;
+    }
+
+    if (scroller.scrollTop !== top) scroller.scrollTop = top;
   }
 
   area.addEventListener("input", () => {
@@ -302,7 +327,10 @@ export function render({ params }) {
     }
   }
 
+  document.documentElement.classList.add("is-writing");
+
   root.addEventListener("lumen:teardown", () => {
+    document.documentElement.classList.remove("is-writing");
     saveSoon.flush();
     settleSoon.cancel();
     window.removeEventListener("beforeunload", onUnload);
@@ -319,7 +347,7 @@ export function render({ params }) {
 
   // Focus the writing area the moment the page opens.
   requestAnimationFrame(() => {
-    grow();
+    grow({ remeasure: true });
     area.focus({ preventScroll: true });
     const end = area.value.length;
     area.setSelectionRange(end, end);
