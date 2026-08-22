@@ -134,6 +134,38 @@ body {
   line-height: 1.5;
 }
 
+/* Anywhere your own words are shown, a single unbroken token — a pasted URL,
+   a very long word — must break rather than push the column open. Only
+   .page__content had this, so a URL in an entry widened its archive card and
+   its monthly excerpt past the screen. */
+.page__content,
+.entry-card__excerpt,
+.entry-card__prompt,
+.entry-card__milestone,
+.excerpt__text,
+.pagelist__text,
+.remember__quote,
+.milestone__label,
+.timeline-marks__label,
+.theme,
+.editor__area,
+.carry__area {
+  /* "anywhere" rather than "break-word": only the former also reduces the
+     element's min-content width, which is what a flex item is sized from. */
+  overflow-wrap: anywhere;
+}
+
+/* A flex item will not shrink below its longest unbreakable word unless it is
+   told it may. Without this, one long token in a milestone label pushes the
+   whole row past the edge of the screen. */
+.milestone__label,
+.entry-card__milestone > span,
+.timeline-marks__label,
+.pagelist__text,
+.theme {
+  min-width: 0;
+}
+
 /* --- focus ---------------------------------------------------------------- */
 :where(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--accent);
@@ -873,7 +905,6 @@ mark {
   line-height: var(--lh-write);
   color: var(--ink);
   white-space: pre-wrap;
-  overflow-wrap: break-word;
 }
 .page__actions {
   display: flex;
@@ -933,15 +964,29 @@ mark {
 .month-row__count { font-size: var(--t-small); color: var(--ink-faint); }
 
 /* A line of words, not a tag cloud. Every word carries the same weight,
-   because the app has no business ranking what mattered to you. */
+   because the app has no business ranking what mattered to you.
+
+   Laid out as a wrapping flex row: written as plain inline spans with no
+   whitespace between them, the browser sees one unbreakable run and the line
+   overflows the column on a narrow screen. */
 .themes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
   font-family: var(--font-serif);
   font-size: var(--t-lead);
   line-height: 1.7;
   color: var(--ink);
   margin-top: var(--s-2);
 }
-.themes__sep { color: var(--ink-ghost); margin: 0 var(--s-2); }
+
+/* The separator rides with the word before it, so a wrapped line can never
+   begin with a stray dot. */
+.theme:not(:last-child)::after {
+  content: "·";
+  color: var(--ink-ghost);
+  margin: 0 var(--s-3);
+}
 
 .excerpt {
   border-left: 1px solid var(--rule-strong);

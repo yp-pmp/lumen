@@ -283,6 +283,10 @@ without reshaping anything.
   clamp the scroll position and throws a long page away from the caret on every
   keystroke. It only re-measures from scratch when the text got shorter, and
   smooth scrolling is switched off while writing so no correction animates.
+- Nothing scrolls sideways. Rows of words are wrapping flex containers rather
+  than inline runs, and every surface that shows your own text sets
+  `overflow-wrap: anywhere` with `min-width: 0` where it is a flex item — so a
+  pasted URL or a very long word breaks instead of pushing the column open.
 - Every piece of text meets WCAG AA contrast (4.5:1) in both themes. The ink
   ramp stops at `--ink-faint`; `--ink-ghost` is lighter than that threshold and
   is reserved for decoration — separators, empty calendar days, progress dots —

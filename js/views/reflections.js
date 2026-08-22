@@ -201,15 +201,14 @@ function themes(entries) {
 
   if (recurring.length) {
     const line = el("p.themes");
-    recurring.forEach((theme, index) => {
-      if (index) line.append(el("span.themes__sep", { text: "·", "aria-hidden": "true" }));
+    for (const theme of recurring) {
       line.append(
         el("span.theme", {
           text: theme.word,
           title: `In ${theme.entries} ${theme.entries === 1 ? "page" : "pages"}`,
         })
       );
-    });
+    }
     section.append(
       line,
       el("p.quiet.faint", {
