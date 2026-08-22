@@ -97,7 +97,15 @@ export function openSettings({ onChange }) {
     }
 
     replace(dialog,
-      el("h2.sheet__title", { text: "Settings" }),
+      el("div.sheet__head", {}, [
+        el("h2.sheet__title", { text: "Settings" }),
+        el("button.sheet__dismiss", {
+          type: "button",
+          "aria-label": "Close settings",
+          title: "Close",
+          onclick: () => dialog.close(),
+        }, ["×"]),
+      ]),
 
       el("div.sheet__group", {}, [
         el("p.sheet__label", { text: "Appearance" }),
@@ -121,12 +129,9 @@ export function openSettings({ onChange }) {
         }),
       ]),
 
-      changelogGroup(),
       aboutGroup(),
+      changelogGroup(),
 
-      el("div.sheet__close", {}, [
-        el("button.btn.btn--ghost", { type: "button", text: "Close", onclick: () => dialog.close() }),
-      ])
     );
   }
 
@@ -151,13 +156,16 @@ function changelogGroup() {
     ]),
   ]);
 
-  CHANGELOG.forEach((release, index) => {
-    const item = el("details.about__item", { open: index === 0 && unseen }, [
-      el("summary.about__summary", { text: release.date }),
-      ...release.lines.map((line) => el("p.about__text", { text: line })),
-    ]);
-    group.append(item);
-  });
+  // Every date stays shut until it is asked for. The "new" badge is enough of
+  // a signal; opening a section unbidden is the sheet talking over you.
+  for (const release of CHANGELOG) {
+    group.append(
+      el("details.about__item", {}, [
+        el("summary.about__summary", { text: release.date }),
+        ...release.lines.map((line) => el("p.about__text", { text: line })),
+      ])
+    );
+  }
 
   // Seeing the list is what marks it seen.
   if (unseen) store.updateSettings({ lastSeenVersion: APP_VERSION });

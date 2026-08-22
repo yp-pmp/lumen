@@ -1137,7 +1137,7 @@ mark {
   border-radius: var(--radius);
   background: var(--bg-raise);
   color: var(--ink);
-  padding: var(--s-6);
+  padding: 0 var(--s-6) var(--s-6);
   max-width: 26rem;
   width: calc(100vw - 2 * var(--gutter));
   max-height: calc(100dvh - 3rem);
@@ -1146,11 +1146,45 @@ mark {
   box-shadow: var(--shadow);
 }
 .sheet::backdrop { background: rgba(20, 18, 15, 0.34); backdrop-filter: blur(2px); }
+/* Sticks to the top of the sheet as it scrolls, so the way out is always in
+   reach — the settings sheet is long enough now that hunting for a button at
+   the bottom is a chore. */
+.sheet__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-4);
+  margin-inline: calc(-1 * var(--s-6));
+  padding: var(--s-6) var(--s-6) var(--s-4);
+  background: var(--bg-raise);
+}
+
 .sheet__title {
   font-family: var(--font-serif);
   font-size: var(--t-title);
-  margin-bottom: var(--s-5);
 }
+
+.sheet__dismiss {
+  margin-left: auto;
+  align-self: flex-start;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  padding: 0;
+  font-size: 1.25rem;
+  line-height: 1;
+  color: var(--ink-faint);
+  background: none;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+}
+.sheet__dismiss:hover { color: var(--ink); background: var(--accent-wash); }
 .sheet__group { padding: var(--s-4) 0; border-top: 1px solid var(--rule); }
 .sheet__label {
   font-size: var(--t-micro);
@@ -1222,7 +1256,6 @@ mark {
 }
 .about__text + .about__text { margin-top: calc(-1 * var(--s-2)); }
 .sheet__note { font-size: var(--t-small); color: var(--ink-soft); margin-top: var(--s-2); line-height: 1.5; }
-.sheet__close { margin-top: var(--s-5); }
 
 
 /* ==========================================================================

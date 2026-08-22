@@ -178,7 +178,11 @@ newest-wins rule as any other edit.
 
 ## About this journal
 
-Settings carries a short **About this journal** section, collapsed by default,
+Settings closes from a × pinned to the top of the sheet, which stays put as the
+sheet scrolls — it grew long enough that a button at the very bottom was a hunt.
+Escape closes it too.
+
+It carries a short **About this journal** section, collapsed by default,
 explaining where writing is stored, how to install it to a home screen, how the
 two-device reconciliation works and what its limits are. It is written for
 someone arriving at the link cold — worth reading if you are sharing LUMEN with
