@@ -132,14 +132,17 @@ the calendar like any other.
 
 ## Milestones
 
-Any page can be marked as a milestone: open it and choose **Mark as a
-milestone**, then give it a few words — "Moved to the new flat", "Started the
+Any page can be marked as a milestone. In the Journal, each page carries a small
+ring on its right — click it to name the moment without leaving the archive. On
+the page itself, **Mark as a milestone** does the same. Either way you give it a
+few words — "Moved to the new flat", "Started the
 new job". Reflections then shows a **Milestones** timeline, earliest first and
 grouped by year, each line linking back to the page you wrote that day.
 
-The marking lives on the page rather than in the editor, because you rarely
-know at the time that a day mattered — and because the writing surface is
-better without one more control on it.
+Marking lives outside the editor, because you rarely know at the time that a day
+mattered — and because the writing surface is better without one more control on
+it. The archive ring exists because marking is usually something you do while
+browsing back, and opening every page to do it was tedious.
 
 These are *your* milestones, not the app's. LUMEN never awards one, never
 counts them, and shows no progress towards anything: no "100 pages written", no

@@ -1,6 +1,6 @@
 /* The archive — a personal library, laid out as a timeline. */
 
-import { el, icon, debounce, replace } from "../utils/dom.js";
+import { el, icon, debounce, replace, announce } from "../utils/dom.js";
 import { go } from "../router.js";
 import * as store from "../store.js";
 import { calendar } from "../components/calendar.js";
@@ -177,8 +177,19 @@ function describe(count, active, current) {
   return count ? `${count} ${noun}.` : "Nothing here yet.";
 }
 
+/**
+ * A page in the archive.
+ *
+ * The card is an <article> rather than a button, because it holds two separate
+ * controls: opening the page, and marking it as a milestone. Nesting one button
+ * inside another is invalid and unusable by keyboard, so the "open" button
+ * stretches to cover the card via a pseudo-element and the milestone ring sits
+ * above it.
+ */
 function entryCard(entry, query, showDate = true) {
-  const card = el("button.entry-card", {
+  const card = el("article.entry-card", { dataset: { marked: String(Boolean(entry.milestone)) } });
+
+  const open = el("button.entry-card__open", {
     type: "button",
     "aria-label": `Open the page from ${longDate(entry.date, { withYear: true })}, ${timeOfDay(entry.createdAt)}`,
     onclick: () => go(`/entry/${entry.id}`),
@@ -209,10 +220,10 @@ function entryCard(entry, query, showDate = true) {
       el("span.entry-card__photos", { text: count === 1 ? "1 photograph" : `${count} photographs` })
     );
   }
-  card.append(meta);
+  open.append(meta);
 
   if (entry.milestone) {
-    card.append(
+    open.append(
       el("p.entry-card__milestone", {}, [
         el("span.milestone__mark", { text: "Milestone", "aria-hidden": "true" }),
         el("span", { text: entry.milestone }),
@@ -220,13 +231,70 @@ function entryCard(entry, query, showDate = true) {
     );
   }
 
-  if (entry.prompt) card.append(el("p.entry-card__prompt", { text: entry.prompt }));
+  if (entry.prompt) open.append(el("p.entry-card__prompt", { text: entry.prompt }));
 
   if (entry.content.trim()) {
-    card.append(el("p.entry-card__excerpt", {}, snippet(entry.content, query)));
+    open.append(el("p.entry-card__excerpt", {}, snippet(entry.content, query)));
   } else {
-    card.append(el("p.entry-card__excerpt.italic", { text: "A page with no words on it." }));
+    open.append(el("p.entry-card__excerpt.italic", { text: "A page with no words on it." }));
   }
+
+  const mark = el("button.entry-card__mark", {
+    type: "button",
+    "aria-pressed": entry.milestone ? "true" : "false",
+    "aria-label": entry.milestone
+      ? `Change the milestone on this page: ${entry.milestone}`
+      : "Mark this page as a milestone",
+    title: entry.milestone ? "Change the milestone" : "Mark as a milestone",
+    onclick: () => askForLabel(),
+  }, [icon(entry.milestone ? "milestoneOn" : "milestone")]);
+
+  card.append(open, mark);
+
+  /* Marking without leaving the archive: the label is asked for right here,
+     since a milestone is nothing without a few words to name it. */
+  function askForLabel() {
+    if (card.querySelector(".entry-card__naming")) return;
+
+    const input = el("input.milestone__input", {
+      type: "text",
+      value: entry.milestone || "",
+      maxlength: String(store.milestoneLimit()),
+      placeholder: "In a few words — what happened?",
+      "aria-label": "What made this day a milestone?",
+    });
+
+    const commit = (value) => {
+      const fresh = store.getEntry(entry.id);
+      if (!fresh) return;
+      fresh.milestone = value.trim() || null;
+      const saved = store.saveEntry(fresh);
+      announce(saved.milestone ? "Marked as a milestone" : "Milestone removed");
+      card.replaceWith(entryCard(saved, query, showDate));
+    };
+
+    const form = el("form.entry-card__naming", {
+      onsubmit: (event) => { event.preventDefault(); commit(input.value); },
+    }, [
+      input,
+      el("div.milestone__buttons", {}, [
+        el("button.link", { type: "submit", text: "Save" }),
+        el("button.link.link--mute", { type: "button", text: "Cancel", onclick: () => form.remove() }),
+        entry.milestone
+          ? el("button.link.link--mute.link--danger", { type: "button", text: "Remove", onclick: () => commit("") })
+          : null,
+      ]),
+    ]);
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") { event.preventDefault(); form.remove(); }
+    });
+
+    card.append(form);
+    input.focus();
+    input.select();
+  }
+
   return card;
 }
 
