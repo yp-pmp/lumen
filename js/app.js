@@ -108,8 +108,11 @@ function mount(route, { animate = true } = {}) {
 
   window.scrollTo({ top: 0, behavior: "auto" });
 
-  // Held back while writing; offered as soon as the page is left.
-  if (route.name !== "write") showUpdateNotice();
+  /* Held back while writing — including a notice already on screen when the
+     editor is opened, which would otherwise sit over the page being written.
+     It is only hidden, not cancelled, so it returns on the way out. */
+  if (route.name === "write") document.getElementById("update-notice")?.remove();
+  else showUpdateNotice();
 
   // On a route change, move focus to the new view so a keyboard or screen
   // reader lands in the right place. Never on first paint: focus belongs at

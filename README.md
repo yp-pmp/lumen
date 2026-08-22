@@ -94,8 +94,9 @@ running, or installed to a home screen and resumed from the background rather
 than launched fresh.
 
 So `js/updates.js` listens for the browser handing control to a newer service
-worker and offers a reload — never taking one, and never while you are writing;
-the notice waits until you leave the editor. It polls no version endpoint: the
+worker and offers a reload — never taking one, and never while you are writing: the notice
+waits until you leave the editor, and one already on screen is hidden the moment
+the editor opens. It polls no version endpoint: the
 signal comes from the browser's own update machinery, and the only thing it asks
 for is a re-read of `sw.js` when you return to the app after half an hour away.
 
