@@ -17,6 +17,7 @@ export const CHANGELOG = [
       "The \"newer version\" notice sits properly on a phone screen instead of running off the edge.",
       "Updates now appear as soon as they are published, rather than after a delay of up to ten minutes.",
       "Settings now carries a short anonymous feedback form, if you have something to say about the app.",
+      "The Journal calendar now shows the dates, with a small mark under the days you wrote on.",
     ],
   },
   {

@@ -337,7 +337,7 @@ without reshaping anything.
   pasted URL or a very long word breaks instead of pushing the column open.
 - Every piece of text meets WCAG AA contrast (4.5:1) in both themes. The ink
   ramp stops at `--ink-faint`; `--ink-ghost` is lighter than that threshold and
-  is reserved for decoration — separators, empty calendar days, progress dots —
+  is reserved for decoration — separators, meta dots, progress dots —
   so putting text in it would reintroduce the problem.
 - Dark mode is a different room, not an inverted one: warm near-black, cream
   type, and a recessed accent so the primary button doesn't shout at midnight.

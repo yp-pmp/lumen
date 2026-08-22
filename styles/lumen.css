@@ -742,36 +742,46 @@ body {
   padding-bottom: var(--s-2);
 }
 .calendar__day {
-  height: 2rem;
+  height: 2.4rem;
   display: grid;
-  place-items: center;
+  grid-template-rows: auto auto;
+  align-content: center;
+  justify-items: center;
+  row-gap: 3px;
   background: none;
   border: 0;
-  border-radius: 50%;
+  border-radius: 999px;
   padding: 0;
   cursor: default;
-  color: var(--ink-ghost);
   transition: background-color var(--dur) var(--ease);
 }
+
+/* Tabular figures so the columns line up as a calendar should. */
+.calendar__num {
+  font-size: var(--t-micro);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  color: var(--ink-faint);
+  transition: color var(--dur) var(--ease);
+}
+
+/* Only days holding something carry a dot; its absence is the "no entry" mark,
+   which keeps the grid quiet instead of peppering it with empty rings. */
 .calendar__dot {
-  width: 5px; height: 5px;
+  width: 4px; height: 4px;
   border-radius: 50%;
-  border: 1px solid var(--ink-ghost);
-  opacity: 0.5;
-  transition: all var(--dur) var(--ease);
-}
-.calendar__day[data-has="true"] { cursor: pointer; }
-.calendar__day[data-has="true"] .calendar__dot {
   background: var(--accent);
-  border-color: var(--accent);
-  opacity: 1;
+  transition: width var(--dur) var(--ease);
 }
+
+.calendar__day[data-has="true"] { cursor: pointer; }
+.calendar__day[data-has="true"] .calendar__num { color: var(--accent); }
 .calendar__day[data-has="true"]:hover { background: var(--accent-wash); }
-.calendar__day[data-today="true"] .calendar__dot {
-  outline: 1px solid var(--rule-strong);
-  outline-offset: 3px;
-}
-.calendar__day[data-multi="true"] .calendar__dot { width: 11px; border-radius: 3px; }
+.calendar__day[data-multi="true"] .calendar__dot { width: 11px; border-radius: 2px; }
+
+/* Today is ringed rather than filled — a marker, not a highlight. */
+.calendar__day[data-today="true"] { box-shadow: inset 0 0 0 1px var(--rule-strong); }
+.calendar__day[data-selected="true"] { background: var(--accent-wash); }
 .calendar__day[data-empty="true"] { visibility: hidden; }
 
 /* --- timeline ------------------------------------------------------------- */
@@ -1659,7 +1669,7 @@ mark {
 @media (pointer: coarse) {
   .mood__option { padding: var(--s-3) var(--s-2); }
   .link { padding: var(--s-1) 0; }
-  .calendar__day { height: 2.4rem; }
+  .calendar__day { height: 2.75rem; }
 }
 
 /* ==========================================================================

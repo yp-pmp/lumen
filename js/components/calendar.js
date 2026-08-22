@@ -1,4 +1,5 @@
-/* A month, drawn as quietly as possible. ○ no page · ● a page */
+/* A month, drawn as quietly as possible: dates, with a mark under the days
+   that hold a page. */
 
 import { el, icon } from "../utils/dom.js";
 import { monthGrid, shiftMonth, monthTitle, todayKey, plainDate } from "../utils/date.js";
@@ -38,6 +39,15 @@ export function calendar({ month, counts, onMonth, onDay, selected = "", earlies
       selected: String(key === selected),
     };
 
+    /* The date itself, with a dot beneath it on days that hold something.
+       Dots alone were unreadable as a calendar: you could see that a month had
+       five pages in it, but not which days they fell on without counting
+       squares. The number carries the meaning now; the dot marks presence. */
+    const face = () => [
+      el("span.calendar__num", { text: String(day), "aria-hidden": "true" }),
+      count > 0 ? el("span.calendar__dot", { "aria-hidden": "true" }) : null,
+    ];
+
     // Only days that hold something are announced or focusable. Thirty empty
     // cells read as noise to a screen reader and give a keyboard nothing to do.
     grid.append(
@@ -47,8 +57,8 @@ export function calendar({ month, counts, onMonth, onDay, selected = "", earlies
             dataset,
             "aria-label": `${plainDate(key)} — ${count} ${count === 1 ? "page" : "pages"}`,
             onclick: () => onDay(key),
-          }, [el("span.calendar__dot", { "aria-hidden": "true" })])
-        : el("span.calendar__day", { dataset, "aria-hidden": "true" }, [el("span.calendar__dot")])
+          }, face())
+        : el("span.calendar__day", { dataset, "aria-hidden": "true" }, face())
     );
   }
 
