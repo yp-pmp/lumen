@@ -83,7 +83,7 @@ const SECTIONS = [
     ],
   },
   {
-    title: "Telling me what you think",
+    title: "Providing feedback",
     lines: () => [
       "If something is broken, confusing, or missing, there is a short form for saying so. It asks for no name, no email and no account — whoever reads it has no way of knowing it came from you.",
       "It is the one thing in LUMEN that leads outside the app: the form is hosted by Google and opens in a new tab. Nothing from your journal is attached, and nothing is sent unless you type it there yourself. Please don't paste anything private into it.",
