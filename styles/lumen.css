@@ -1247,6 +1247,26 @@ mark {
 .about__item[open] > .about__summary { color: var(--ink); }
 .about__item[open] > .about__summary::after { content: "−"; color: var(--ink-faint); }
 
+/* The one link in the app that leaves it. Styled as a link rather than a
+   button, so it reads as somewhere you are going rather than something that
+   happens here. */
+.about__link {
+  display: inline-block;
+  margin-top: var(--s-2);
+  font-size: var(--t-small);
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid var(--accent-soft);
+  padding-bottom: 1px;
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.about__link:hover { border-bottom-color: var(--accent); }
+.about__link::after {
+  content: "↗";
+  margin-left: 0.35em;
+  font-size: 0.85em;
+}
+
 .about__text {
   font-size: var(--t-small);
   line-height: 1.6;

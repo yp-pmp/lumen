@@ -9,6 +9,12 @@
 import { el } from "../utils/dom.js";
 import { durability } from "../store.js";
 
+/* The published form address. The ?usp=publish-editor suffix Google appends
+   when copying from the editor is dropped: it belongs to the editing session,
+   not to the form a reader should be sent to. */
+const FEEDBACK_FORM =
+  "https://docs.google.com/forms/d/e/1FAIpQLSdz7K-5iGMKgRyqsgzaAn7TB92OAgCK337wV75bth7kFp3NKA/viewform";
+
 /** Already launched from a home screen or dock? Then the advice is moot. */
 function isInstalled() {
   return (
@@ -33,7 +39,7 @@ const SECTIONS = [
     title: "Where your writing lives",
     lines: () => [
       "Everything you write, and every photograph you add, is stored by the browser on the device you wrote it on.",
-      "Nothing is uploaded. There is no account and no server holding your entries — the website hands over the app's files and nothing else. No one else can read what you write here, including whoever gave you the link.",
+      "Your writing is never uploaded. There is no account and no server holding your entries — the website hands over the app's files and nothing else. No one else can read what you write here, including whoever gave you the link.",
       "Storage is separate for each browser and each device. Safari, Chrome and the home-screen app each keep their own journal, even on the same phone.",
     ],
   },
@@ -76,13 +82,28 @@ const SECTIONS = [
       "When you are online it loads the current version, so improvements arrive on their own the next time you open it. Your pages are never affected by an update.",
     ],
   },
+  {
+    title: "Telling me what you think",
+    lines: () => [
+      "If something is broken, confusing, or missing, there is a short form for saying so. It asks for no name, no email and no account — whoever reads it has no way of knowing it came from you.",
+      "It is the one thing in LUMEN that leads outside the app: the form is hosted by Google and opens in a new tab. Nothing from your journal is attached, and nothing is sent unless you type it there yourself. Please don't paste anything private into it.",
+      el("p.about__text", {}, [
+        el("a.about__link", {
+          href: FEEDBACK_FORM,
+          target: "_blank",
+          rel: "noopener noreferrer",
+          text: "Open the feedback form",
+        }),
+      ]),
+    ],
+  },
 ];
 
 export function aboutGroup() {
   const group = el("div.sheet__group", {}, [
     el("p.sheet__label", { text: "About this journal" }),
     el("p.sheet__note.about__lead", {
-      text: "Your writing belongs to you and stays on the device you wrote it on. There is no account, nothing is ever uploaded, and nobody else — including whoever shared this link — can read a word of it. Saving a backup is only ever about making sure a cleared browser can't take it from you.",
+      text: "Your writing belongs to you and stays on the device you wrote it on. There is no account, your pages are never uploaded, and nobody else — including whoever shared this link — can read a word of it. Saving a backup is only ever about making sure a cleared browser can't take it from you.",
     }),
   ]);
 
@@ -90,7 +111,9 @@ export function aboutGroup() {
     group.append(
       el("details.about__item", {}, [
         el("summary.about__summary", { text: section.title }),
-        ...section.lines().map((line) => el("p.about__text", { text: line })),
+        ...section.lines().map((line) =>
+          line instanceof Node ? line : el("p.about__text", { text: line })
+        ),
       ])
     );
   }

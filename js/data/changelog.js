@@ -16,6 +16,7 @@ export const CHANGELOG = [
       "Long words and pasted links now wrap instead of running off the side of the screen.",
       "The \"newer version\" notice sits properly on a phone screen instead of running off the edge.",
       "Updates now appear as soon as they are published, rather than after a delay of up to ten minutes.",
+      "Settings now carries a short anonymous feedback form, if you have something to say about the app.",
     ],
   },
   {

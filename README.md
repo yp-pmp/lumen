@@ -4,7 +4,9 @@ A quiet digital journal. Warm ivory, one dusty-blue accent, a serif that is
 comfortable to read for a long time, and as little interface as the job allows.
 
 Everything you write stays in your own browser. There is no account, no server
-to talk to, and no network request of any kind once the page has loaded.
+to talk to, and no network request of any kind once the page has loaded. The one
+outbound path is a feedback link in Settings, which opens a form in a new tab if
+you choose to click it — nothing is sent from the journal itself.
 
 ## Running it
 
@@ -207,6 +209,10 @@ browser has cleared.
   page still destroys its content immediately and irreversibly.
 - The app makes no `fetch`, no XHR, no WebSocket, and loads no external font,
   script, or image. The page's own files and inline `data:` URIs are all of it.
+- Settings carries one external **link** — an anonymous feedback form hosted by
+  Google. A link is not a request: nothing is contacted unless you click it, and
+  it carries `rel="noopener noreferrer"` so the form is not told which page you
+  came from. Nothing from the journal is attached.
 - The service worker caches only those same files. It has no journal content to
   cache — entries are never fetched over the network — and it sends nothing.
 - Journal text is never written to the console. The two `console.warn` calls in
