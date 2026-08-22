@@ -50,6 +50,7 @@ export function render({ params }) {
   const closing = el("p.closing", { hidden: true });
   const moodBlock = el("div.mood");
   const photoBlock = el("div.photos");
+  const milestoneBlock = el("div.editor__milestone");
 
   const root = el("form.editor", {
     onsubmit: (event) => event.preventDefault(),
@@ -69,7 +70,7 @@ export function render({ params }) {
       promptBlock,
     ]),
     el("div.editor__body", {}, [area]),
-    el("footer.editor__foot", {}, [closing, photoBlock, moodBlock]),
+    el("footer.editor__foot", {}, [closing, photoBlock, moodBlock, milestoneBlock]),
   ]);
 
   if (entry.content.trim()) root.classList.add("has-content");
@@ -191,6 +192,7 @@ export function render({ params }) {
             save();
             drawPhotos();
             drawMood();
+            drawMilestone();
           } catch (problem) {
             error.hidden = false;
             error.textContent = problem.message || "That image couldn't be added.";
@@ -227,10 +229,84 @@ export function render({ params }) {
     );
   }
 
+  /* --- marking the day ---------------------------------------------------
+     Offered here as well as on the finished page, because some days announce
+     themselves while you are still writing about them. Like mood, it waits
+     for the first words rather than greeting a blank page. */
+
+  function drawMilestone() {
+    if (!entry.content.trim() && !entry.mood && !entry.images?.length && !entry.milestone) {
+      replace(milestoneBlock);
+      return;
+    }
+
+    if (!entry.milestone) {
+      replace(milestoneBlock,
+        el("button.link.link--mute", {
+          type: "button",
+          text: "Mark this page as a milestone",
+          onclick: () => editMilestone(),
+        })
+      );
+      return;
+    }
+
+    replace(milestoneBlock,
+      el("p.milestone", {}, [
+        el("span.milestone__mark", { text: "Milestone", "aria-hidden": "true" }),
+        el("span.milestone__label", { text: entry.milestone }),
+      ]),
+      el("button.link.link--mute", {
+        type: "button",
+        text: "Change the milestone",
+        onclick: () => editMilestone(),
+      })
+    );
+  }
+
+  function editMilestone() {
+    const input = el("input.milestone__input", {
+      type: "text",
+      value: entry.milestone || "",
+      maxlength: String(store.milestoneLimit()),
+      placeholder: "In a few words — what happened?",
+      "aria-label": "What made this day a milestone?",
+    });
+
+    const commit = (value) => {
+      entry.milestone = value.trim() || null;
+      save();
+      drawMilestone();
+      announce(entry.milestone ? "Marked as a milestone" : "Milestone removed");
+    };
+
+    const form = el("form.milestone__form", {
+      onsubmit: (event) => { event.preventDefault(); commit(input.value); },
+    }, [
+      input,
+      el("div.milestone__buttons", {}, [
+        el("button.link", { type: "submit", text: "Save" }),
+        el("button.link.link--mute", { type: "button", text: "Cancel", onclick: () => drawMilestone() }),
+        entry.milestone
+          ? el("button.link.link--mute.link--danger", { type: "button", text: "Remove", onclick: () => commit("") })
+          : null,
+      ]),
+    ]);
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") { event.preventDefault(); drawMilestone(); }
+    });
+
+    replace(milestoneBlock, form);
+    input.focus();
+    input.select();
+  }
+
   /* --- autosave --------------------------------------------------------- */
 
   function worthKeeping() {
-    return Boolean(entry.content.trim()) || Boolean(entry.mood) || (entry.images?.length > 0);
+    return Boolean(entry.content.trim()) || Boolean(entry.mood)
+      || (entry.images?.length > 0) || Boolean(entry.milestone);
   }
 
   function save() {
@@ -289,7 +365,7 @@ export function render({ params }) {
     entry.content = area.value;
     entry.wordCount = countWords(entry.content);
     const hasContent = Boolean(entry.content.trim());
-    if (hasContent !== hadContent) drawMood();
+    if (hasContent !== hadContent) { drawMood(); drawMilestone(); }
     root.classList.toggle("has-content", hasContent);
     root.classList.add("is-immersed");
     grow();
@@ -344,6 +420,7 @@ export function render({ params }) {
   drawPrompt();
   drawMood();
   drawPhotos();
+  drawMilestone();
 
   // Focus the writing area the moment the page opens.
   requestAnimationFrame(() => {

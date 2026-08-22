@@ -11,7 +11,7 @@ export const CHANGELOG = [
     version: "2026.08.22",
     date: "22 August 2026",
     lines: [
-      "Milestones: mark a page as a moment worth remembering, and see them all on a timeline in Reflections.",
+      "Milestones: mark a page as a moment worth remembering, and see them all on a timeline in Reflections. Mark one while writing, from the finished page, or straight from the Journal list.",
       "A long entry no longer jumps away from the cursor while you type.",
       "Long words and pasted links now wrap instead of running off the side of the screen.",
       "The \"newer version\" notice sits properly on a phone screen instead of running off the edge.",

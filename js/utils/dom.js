@@ -69,11 +69,6 @@ const PATHS = {
     '<path d="M7.5 4 12 9l-4.5 5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>',
   settings:
     '<circle cx="9" cy="9" r="6.2" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="9" cy="9" r="1.9" fill="currentColor"/>',
-  // Echoes the dot on the Milestones timeline: an open ring until it is marked.
-  milestone:
-    '<circle cx="9" cy="9" r="5.4" fill="none" stroke="currentColor" stroke-width="1.4"/>',
-  milestoneOn:
-    '<circle cx="9" cy="9" r="5.4" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="9" cy="9" r="2.5" fill="currentColor"/>',
 };
 
 export function icon(name, label) {

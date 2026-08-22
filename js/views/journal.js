@@ -220,7 +220,7 @@ function entryCard(entry, query, showDate = true) {
       el("span.entry-card__photos", { text: count === 1 ? "1 photograph" : `${count} photographs` })
     );
   }
-  open.append(meta);
+  card.append(meta);
 
   if (entry.milestone) {
     open.append(
@@ -239,17 +239,20 @@ function entryCard(entry, query, showDate = true) {
     open.append(el("p.entry-card__excerpt.italic", { text: "A page with no words on it." }));
   }
 
+  /* Spelled out rather than drawn. A bare ring gave no clue what it did, and
+     a tooltip is no help on a phone. It rides at the end of the metadata line
+     where the eye already goes for the small print. */
   const mark = el("button.entry-card__mark", {
     type: "button",
-    "aria-pressed": entry.milestone ? "true" : "false",
+    text: entry.milestone ? "Change the milestone" : "Mark as a milestone",
     "aria-label": entry.milestone
-      ? `Change the milestone on this page: ${entry.milestone}`
-      : "Mark this page as a milestone",
-    title: entry.milestone ? "Change the milestone" : "Mark as a milestone",
+      ? `Change the milestone on the page from ${longDate(entry.date, { withYear: true })}`
+      : `Mark the page from ${longDate(entry.date, { withYear: true })} as a milestone`,
     onclick: () => askForLabel(),
-  }, [icon(entry.milestone ? "milestoneOn" : "milestone")]);
+  });
+  meta.append(el("span.entry-card__dot", { text: "·", "aria-hidden": "true" }), mark);
 
-  card.append(open, mark);
+  card.append(open);
 
   /* Marking without leaving the archive: the label is asked for right here,
      since a milestone is nothing without a few words to name it. */

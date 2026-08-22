@@ -802,7 +802,7 @@ body {
   text-align: left;
   background: none;
   border: 0;
-  padding: 0 2.75rem 0 0;
+  padding: 0;
   cursor: pointer;
   color: inherit;
   font: inherit;
@@ -821,26 +821,29 @@ body {
 .entry-card:hover .entry-card__excerpt { color: var(--ink); }
 .entry-card:hover .entry-card__date { color: var(--accent); }
 
+/* Sits in the metadata line, and must rise above the stretched open-overlay
+   or the card would swallow the click. */
 .entry-card__mark {
-  position: absolute;
-  top: var(--s-5);
-  right: 0;
+  position: relative;
   z-index: 1;
-  display: grid;
-  place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  padding: 0;
+  padding: var(--s-1) 0;
   background: none;
   border: 0;
-  border-radius: 50%;
-  color: var(--ink-ghost);
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  color: var(--accent);
   cursor: pointer;
-  transition: color var(--dur) var(--ease), background-color var(--dur) var(--ease);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease);
 }
-.entry-card__mark svg { width: 16px; height: 16px; }
-.entry-card__mark:hover { color: var(--accent); background: var(--accent-wash); }
-.entry-card[data-marked="true"] .entry-card__mark { color: var(--accent); }
+.entry-card__mark:hover { border-bottom-color: var(--accent-soft); }
+
+.editor__milestone {
+  margin-top: var(--s-5);
+  padding-top: var(--s-5);
+  border-top: 1px solid var(--rule);
+}
+.editor__milestone .milestone { margin-top: 0; margin-bottom: var(--s-4); }
 
 .entry-card__naming {
   position: relative;
