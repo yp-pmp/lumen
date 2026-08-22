@@ -1229,15 +1229,20 @@ mark {
    ========================================================================== */
 .update-notice {
   position: fixed;
-  left: 50%;
+  /* Centred with margins rather than a transform. The entrance animation ends
+     on `transform: none` with fill-mode both, so any transform used for layout
+     here would be wiped the moment the animation finished — which is exactly
+     how this ended up hanging off the right edge of a phone. */
+  left: max(var(--gutter), env(safe-area-inset-left));
+  right: max(var(--gutter), env(safe-area-inset-right));
   bottom: calc(var(--s-5) + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
+  margin-inline: auto;
+  max-width: 28rem;
   z-index: 20;
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--s-3) var(--s-5);
-  width: min(28rem, calc(100vw - 2 * var(--gutter)));
   padding: var(--s-4);
   background: var(--bg-raise);
   border: 1px solid var(--rule-strong);
