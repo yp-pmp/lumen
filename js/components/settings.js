@@ -4,6 +4,7 @@ import { el, announce, replace } from "../utils/dom.js";
 import * as store from "../store.js";
 import { buildDemoEntries } from "../data/demo.js";
 import { aboutGroup } from "./about.js";
+import { APP_VERSION, CHANGELOG } from "../data/changelog.js";
 import { saveACopy } from "../backup.js";
 
 export function openSettings({ onChange }) {
@@ -120,6 +121,7 @@ export function openSettings({ onChange }) {
         }),
       ]),
 
+      changelogGroup(),
       aboutGroup(),
 
       el("div.sheet__close", {}, [
@@ -132,6 +134,35 @@ export function openSettings({ onChange }) {
   dialog.addEventListener("close", () => dialog.remove());
   document.getElementById("overlay-root").append(dialog);
   dialog.showModal();
+}
+
+/**
+ * What's changed — for anyone curious, ignorable by everyone else. The newest
+ * entry opens on its own the first time you see a version you haven't seen.
+ */
+function changelogGroup() {
+  const settings = store.getSettings();
+  const unseen = settings.lastSeenVersion !== APP_VERSION;
+
+  const group = el("div.sheet__group", {}, [
+    el("p.sheet__label", {}, [
+      "What's changed",
+      unseen ? el("span.sheet__new", { text: "new" }) : null,
+    ]),
+  ]);
+
+  CHANGELOG.forEach((release, index) => {
+    const item = el("details.about__item", { open: index === 0 && unseen }, [
+      el("summary.about__summary", { text: release.date }),
+      ...release.lines.map((line) => el("p.about__text", { text: line })),
+    ]);
+    group.append(item);
+  });
+
+  // Seeing the list is what marks it seen.
+  if (unseen) store.updateSettings({ lastSeenVersion: APP_VERSION });
+
+  return group;
 }
 
 /**

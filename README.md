@@ -85,6 +85,27 @@ Two things to know. It needs HTTPS (or `localhost`), so it is inactive over
 `--lan`. And **if you add a file to the app, add it to `PRECACHE` in `sw.js`**,
 or it won't be there offline.
 
+### Noticing a new version
+
+Because the worker is network-first, *launching* the app while online already
+loads the current version — there is no stale build to clear. What that cannot
+do is change the code of a page already open, which is the case for an app left
+running, or installed to a home screen and resumed from the background rather
+than launched fresh.
+
+So `js/updates.js` listens for the browser handing control to a newer service
+worker and offers a reload — never taking one, and never while you are writing;
+the notice waits until you leave the editor. It polls no version endpoint: the
+signal comes from the browser's own update machinery, and the only thing it asks
+for is a re-read of `sw.js` when you return to the app after half an hour away.
+
+### What's changed
+
+`js/data/changelog.js` holds the release notes shown in Settings, newest first.
+**Bump `APP_VERSION` whenever you add an entry** — that constant is what marks
+the list as new, compared against what this device last saw. Nothing is fetched
+to determine it.
+
 ## Where things are
 
 ```
@@ -106,6 +127,8 @@ js/
   views/              today · editor · journal · entry · reflections · onboarding
   components/         calendar · polaroid · settings sheet · about
   utils/              dom · date · text (word counts, excerpts, theme finding)
+  updates.js          noticing when a newer version has taken over
+  data/changelog.js   release notes shown in Settings
   data/demo.js        fictional demo entries, all flagged isDemo
 ```
 

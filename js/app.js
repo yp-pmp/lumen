@@ -15,6 +15,7 @@ import * as entryView from "./views/entry.js";
 import * as reflections from "./views/reflections.js";
 import { partOfDay } from "./utils/date.js";
 import * as media from "./media.js";
+import { watchForUpdates } from "./updates.js";
 
 const VIEWS = {
   today: today.render,
@@ -107,6 +108,9 @@ function mount(route, { animate = true } = {}) {
 
   window.scrollTo({ top: 0, behavior: "auto" });
 
+  // Held back while writing; offered as soon as the page is left.
+  if (route.name !== "write") showUpdateNotice();
+
   // On a route change, move focus to the new view so a keyboard or screen
   // reader lands in the right place. Never on first paint: focus belongs at
   // the top of the document then, where the skip link is.
@@ -152,6 +156,40 @@ function registerServiceWorker() {
   });
 }
 
+/**
+ * A newer version has taken over in the background. Say so once, quietly, and
+ * let the reader choose the moment — never mid-sentence, and never by
+ * reloading the page out from under them.
+ */
+let updateWaiting = false;
+
+function noteUpdateReady() {
+  updateWaiting = true;
+  showUpdateNotice();
+}
+
+function showUpdateNotice() {
+  if (!updateWaiting) return;
+  if (currentRoute?.name === "write") return;        // not while writing
+  if (document.getElementById("update-notice")) return;
+
+  const notice = el("div.update-notice", { id: "update-notice", role: "status" }, [
+    el("p.update-notice__text", { text: "A newer version of LUMEN is ready." }),
+    el("div.update-notice__actions", {}, [
+      el("button.link", { type: "button", text: "Reload", onclick: () => window.location.reload() }),
+      el("button.link.link--mute", {
+        type: "button",
+        text: "Later",
+        onclick: () => {
+          updateWaiting = false;
+          notice.remove();
+        },
+      }),
+    ]),
+  ]);
+  document.getElementById("overlay-root").append(notice);
+}
+
 /* --- start ---------------------------------------------------------------- */
 
 function begin() {
@@ -171,6 +209,7 @@ function begin() {
 
   if (!store.isPersistent()) warnAboutStorage();
   registerServiceWorker();
+  watchForUpdates(noteUpdateReady);
 
   // Pictures left behind by a page deleted in another tab, or replaced by an
   // import. Harmless if it fails; it only reclaims space.

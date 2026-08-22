@@ -23,6 +23,7 @@ const DEFAULT_SETTINGS = {
   lastExportAt: null,    // when a copy was last saved to this device
   backupNoticeSnoozedAt: null,
   durabilityAskedAt: null,
+  lastSeenVersion: null,
 };
 
 /* How rarely the backup notice may speak. A journal is not a to-do list and

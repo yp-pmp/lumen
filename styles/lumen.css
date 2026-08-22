@@ -1223,6 +1223,55 @@ mark {
 
 
 /* ==========================================================================
+   A newer version is ready
+   Rare, quiet, and never while writing. It sits out of the way at the foot of
+   the screen rather than interrupting the page.
+   ========================================================================== */
+.update-notice {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--s-5) + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-3) var(--s-5);
+  width: min(28rem, calc(100vw - 2 * var(--gutter)));
+  padding: var(--s-4);
+  background: var(--bg-raise);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  animation: enter var(--dur-slow) var(--ease) both;
+}
+
+.update-notice__text {
+  font-size: var(--t-small);
+  color: var(--ink-soft);
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.update-notice__actions {
+  display: flex;
+  gap: var(--s-4);
+  align-items: baseline;
+  margin-left: auto;
+}
+
+.sheet__new {
+  margin-left: var(--s-2);
+  padding: 0 0.4em;
+  font-size: 0.625rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--accent-soft);
+  border-radius: 999px;
+}
+
+/* ==========================================================================
    Milestones
    A moment you marked yourself. Nothing here counts, scores or completes —
    it is a caption on a day, and a line on a timeline that reads forwards.
