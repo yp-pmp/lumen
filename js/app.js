@@ -155,7 +155,11 @@ function warnAboutStorage() {
 function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
+    /* updateViaCache: "none" — sw.js is served with max-age=600 like everything
+       else, and without this the browser would consult a cached copy when
+       checking for a newer version, delaying the update notice by up to ten
+       minutes after a deploy. */
+    navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" }).catch(() => {});
   });
 }
 

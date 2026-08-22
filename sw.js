@@ -50,9 +50,18 @@ const PRECACHE = [
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(VERSION);
-    // One at a time: a single missing file shouldn't fail the whole install
-    // and leave the app with no offline support at all.
-    await Promise.all(PRECACHE.map((url) => cache.add(url).catch(() => {})));
+    /* One at a time: a single missing file shouldn't fail the whole install and
+       leave the app with no offline support at all. cache.add() would fetch
+       through the HTTP cache, so a newly installed worker could precache the
+       very files it exists to replace — hence the explicit no-store fetch. */
+    await Promise.all(PRECACHE.map(async (url) => {
+      try {
+        const response = await fetch(url, { cache: "no-store" });
+        if (response.ok) await cache.put(url, response);
+      } catch (error) {
+        // Offline at install time. The app still runs; offline support fills in later.
+      }
+    }));
     await self.skipWaiting();
   })());
 });
@@ -77,7 +86,25 @@ async function networkFirst(request) {
   const cache = await caches.open(VERSION);
 
   try {
-    const response = await withTimeout(fetch(request), NETWORK_TIMEOUT);
+    /* `cache: "no-store"` matters more than it looks. GitHub Pages serves
+       everything with max-age=600, and a plain fetch() consults that HTTP
+       cache first — so "network-first" would quietly mean "up to ten minutes
+       stale", and a freshly deployed change could take that long to appear
+       however many times the page was reloaded. Going past it costs one small
+       download per launch and makes the strategy honest. Offline safety is
+       unaffected: the copy below in Cache Storage is what serves then.
+
+       A navigation request is rebuilt from its URL rather than passed through,
+       because reconstructing a request whose mode is "navigate" is a corner of
+       the spec worth stepping around. Everything here is a same-origin GET, so
+       the URL is all that is needed. */
+    const networkRequest = request.mode === "navigate"
+      ? new Request(request.url, { cache: "no-store" })
+      : request;
+    const response = await withTimeout(
+      fetch(networkRequest, { cache: "no-store" }),
+      NETWORK_TIMEOUT
+    );
     // A redirected response can't be stored against a navigation request.
     if (response.ok && !response.redirected) {
       cache.put(request, response.clone()).catch(() => {});

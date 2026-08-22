@@ -15,6 +15,7 @@ export const CHANGELOG = [
       "A long entry no longer jumps away from the cursor while you type.",
       "Long words and pasted links now wrap instead of running off the side of the screen.",
       "The \"newer version\" notice sits properly on a phone screen instead of running off the edge.",
+      "Updates now appear as soon as they are published, rather than after a delay of up to ten minutes.",
     ],
   },
   {

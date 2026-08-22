@@ -74,8 +74,17 @@ keeps its own journal, and the host never sees a word of it.
 opened LUMEN on a device it launches with no connection at all. It registers
 itself on load; there is nothing to switch on.
 
-It is **network-first with a 2.5 second timeout**. Online you always get the
-current version, so there is no stale build to clear after a deploy. Offline —
+It is **network-first with a 2.5 second timeout**, and its fetches deliberately
+bypass the browser's HTTP cache. That second part matters: GitHub Pages serves
+everything with `Cache-Control: max-age=600`, and a plain `fetch()` consults
+that cache first — which would make "network-first" mean "up to ten minutes
+stale", so a freshly deployed change could fail to appear however many times the
+page was reloaded. With `cache: "no-store"` the strategy is honest, at the cost
+of one small download per launch. The registration also passes
+`updateViaCache: "none"` so the check for a newer worker is not itself answered
+from a cached copy.
+
+Online you therefore get the current version. Offline —
 or on a connection that has gone vague — the request falls back to the cache
 almost immediately and the app opens as usual. Writing, searching, reflections
 and everything else already ran locally, so nothing is degraded; only the
