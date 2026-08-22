@@ -13,6 +13,7 @@ export function render({ params }) {
   if (!entry) return missing();
 
   const actions = el("div.page__actions");
+  const milestoneSlot = el("div.milestone-slot");
 
   const view = el("article.wrap.page", {}, [
     el("button.editor__back", {
@@ -23,6 +24,7 @@ export function render({ params }) {
     el("header.page__head", {}, [
       el("h1.page__date", { text: longDate(entry.date, { withYear: true }) }),
       metaLine(entry),
+      milestoneSlot,
     ]),
 
     entry.prompt ? el("p.page__prompt", { text: entry.prompt }) : null,
@@ -32,6 +34,74 @@ export function render({ params }) {
   ]);
 
   drawActions();
+  drawMilestone();
+
+  /* --- marking a moment --------------------------------------------------
+     Offered here rather than in the editor: you rarely know at the time that
+     a day mattered, and the writing surface stays clear of one more control. */
+
+  function drawMilestone() {
+    if (!entry.milestone) {
+      replace(milestoneSlot);
+      return;
+    }
+    replace(milestoneSlot,
+      el("p.milestone", {}, [
+        el("span.milestone__mark", { text: "Milestone", "aria-hidden": "true" }),
+        el("span.milestone__label", { text: entry.milestone }),
+      ])
+    );
+  }
+
+  function editMilestone() {
+    const input = el("input.milestone__input", {
+      type: "text",
+      value: entry.milestone || "",
+      maxlength: String(store.milestoneLimit()),
+      placeholder: "In a few words — what happened?",
+      "aria-label": "What made this day a milestone?",
+    });
+
+    const commit = (value) => {
+      entry.milestone = value.trim() || null;
+      const saved = store.saveEntry(entry);
+      Object.assign(entry, saved);
+      drawMilestone();
+      drawActions();
+      announce(entry.milestone ? "Marked as a milestone" : "Milestone removed");
+    };
+
+    const form = el("form.milestone__form", {
+      onsubmit: (event) => {
+        event.preventDefault();
+        commit(input.value);
+      },
+    }, [
+      input,
+      el("div.milestone__buttons", {}, [
+        el("button.link", { type: "submit", text: "Save" }),
+        el("button.link.link--mute", { type: "button", text: "Cancel", onclick: () => drawActions() }),
+        entry.milestone
+          ? el("button.link.link--mute.link--danger", {
+              type: "button",
+              text: "Remove",
+              onclick: () => commit(""),
+            })
+          : null,
+      ]),
+    ]);
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        drawActions();
+      }
+    });
+
+    replace(actions, form);
+    input.focus();
+    input.select();
+  }
 
   function drawActions() {
     replace(actions,
@@ -39,6 +109,11 @@ export function render({ params }) {
         type: "button",
         text: "Edit this page",
         onclick: () => go(`/write/${entry.id}`),
+      }),
+      el("button.link.link--mute", {
+        type: "button",
+        text: entry.milestone ? "Change the milestone" : "Mark as a milestone",
+        onclick: () => editMilestone(),
       }),
       el("button.link.link--mute.link--danger", {
         type: "button",

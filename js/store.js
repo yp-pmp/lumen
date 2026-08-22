@@ -34,6 +34,10 @@ const BACKUP_SNOOZE_DAYS = 30;
 
 const MOODS = ["Peaceful", "Happy", "Reflective", "Energized", "Tired", "Anxious", "Sad", "Grateful"];
 
+/* A milestone is a few words, not a paragraph — long enough for "Moved to the
+   new flat", short enough to read as a line on a timeline. */
+const MILESTONE_MAX = 70;
+
 let entries = [];
 let settings = { ...DEFAULT_SETTINGS };
 let reflections = {};
@@ -139,6 +143,9 @@ function normalise(entry) {
     promptCategory: typeof entry.promptCategory === "string" ? entry.promptCategory : null,
     wordCount: typeof entry.wordCount === "number" ? entry.wordCount : countWords(content),
     images: Array.isArray(entry.images) ? entry.images.filter((id) => typeof id === "string") : [],
+    milestone: typeof entry.milestone === "string" && entry.milestone.trim()
+      ? entry.milestone.trim().slice(0, MILESTONE_MAX)
+      : null,
     isDemo: entry.isDemo === true || undefined,
   };
 }
@@ -183,6 +190,7 @@ export function createEntry({ date = todayKey(), prompt = null, promptCategory =
     promptCategory,
     wordCount: 0,
     images: [],
+    milestone: null,
   };
 }
 
@@ -328,6 +336,19 @@ export async function requestDurableStorage() {
 
 /* --- derived ------------------------------------------------------------- */
 
+/** Marked moments, earliest first — a life read forwards. */
+export function milestones() {
+  return entries
+    .filter((entry) => entry.milestone)
+    .sort((a, b) => (a.date === b.date
+      ? (a.createdAt < b.createdAt ? -1 : 1)
+      : (a.date < b.date ? -1 : 1)));
+}
+
+export function milestoneLimit() {
+  return MILESTONE_MAX;
+}
+
 export function referencedImages() {
   return entries.flatMap((entry) => entry.images || []);
 }
@@ -405,6 +426,7 @@ export function search(query, { mood = "", month = "", date = "" } = {}) {
     return (
       entry.content.toLowerCase().includes(needle) ||
       (entry.prompt || "").toLowerCase().includes(needle) ||
+      (entry.milestone || "").toLowerCase().includes(needle) ||
       (entry.mood || "").toLowerCase().includes(needle) ||
       (entry.promptCategory || "").toLowerCase().includes(needle)
     );
@@ -426,7 +448,7 @@ export function monthsWithEntries() {
 /* The fields that make a page what it is. Everything else — updatedAt, and
    the word count derived from content — is bookkeeping, and two copies that
    agree on all of these are the same page however their timestamps differ. */
-const MATERIAL_FIELDS = ["content", "mood", "prompt", "promptCategory", "date"];
+const MATERIAL_FIELDS = ["content", "mood", "prompt", "promptCategory", "date", "milestone"];
 
 function sameImages(a, b) {
   const left = a.images || [];

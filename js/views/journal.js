@@ -211,6 +211,15 @@ function entryCard(entry, query, showDate = true) {
   }
   card.append(meta);
 
+  if (entry.milestone) {
+    card.append(
+      el("p.entry-card__milestone", {}, [
+        el("span.milestone__mark", { text: "Milestone", "aria-hidden": "true" }),
+        el("span", { text: entry.milestone }),
+      ])
+    );
+  }
+
   if (entry.prompt) card.append(el("p.entry-card__prompt", { text: entry.prompt }));
 
   if (entry.content.trim()) {

@@ -1128,6 +1128,146 @@ mark {
 
 
 /* ==========================================================================
+   Milestones
+   A moment you marked yourself. Nothing here counts, scores or completes —
+   it is a caption on a day, and a line on a timeline that reads forwards.
+   ========================================================================== */
+.milestone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-3);
+  margin-top: var(--s-4);
+  padding-left: var(--s-4);
+  border-left: 2px solid var(--accent-soft);
+}
+
+.milestone__mark {
+  font-size: var(--t-micro);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--accent);
+  flex: 0 0 auto;
+}
+
+.milestone__label {
+  font-family: var(--font-serif);
+  font-size: var(--t-read);
+  color: var(--ink);
+}
+
+.milestone__form { width: 100%; }
+
+.milestone__input {
+  width: 100%;
+  max-width: 28rem;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--rule-strong);
+  padding: var(--s-2) 0;
+  font-family: var(--font-serif);
+  font-size: var(--t-read);
+  color: var(--ink);
+  caret-color: var(--accent);
+  outline: none;
+  transition: border-color var(--dur) var(--ease);
+}
+.milestone__input::placeholder { color: var(--ink-faint); font-style: italic; }
+.milestone__input:focus { border-bottom-color: var(--accent); }
+.milestone__input:focus-visible { outline: none; }
+
+.milestone__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-5);
+  align-items: baseline;
+  margin-top: var(--s-4);
+}
+
+.entry-card__milestone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-2) var(--s-3);
+  margin-bottom: var(--s-2);
+  font-family: var(--font-serif);
+  font-size: var(--t-body);
+  color: var(--ink);
+}
+
+/* --- the timeline ---------------------------------------------------------- */
+.timeline-marks {
+  position: relative;
+  margin-top: var(--s-2);
+  padding-left: var(--s-5);
+}
+/* The spine the moments hang from. */
+.timeline-marks::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 0.6rem;
+  bottom: 0.6rem;
+  width: 1px;
+  background: var(--rule);
+}
+
+.timeline-marks__year {
+  font-size: var(--t-micro);
+  letter-spacing: var(--ls-eyebrow);
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  margin: var(--s-5) 0 var(--s-2);
+}
+.timeline-marks__year:first-child { margin-top: 0; }
+
+.timeline-marks__button {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s-1) var(--s-4);
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: var(--s-3) 0;
+  cursor: pointer;
+  color: inherit;
+  transition: color var(--dur) var(--ease);
+}
+.timeline-marks__button:hover .timeline-marks__label { color: var(--accent); }
+
+.timeline-marks__dot {
+  position: absolute;
+  left: calc(-1 * var(--s-5) + 1px);
+  top: 1.15rem;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.timeline-marks__label {
+  font-family: var(--font-serif);
+  font-size: var(--t-read);
+  color: var(--ink);
+  transition: color var(--dur) var(--ease);
+}
+
+.timeline-marks__date {
+  font-size: var(--t-micro);
+  letter-spacing: 0.06em;
+  color: var(--ink-faint);
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 34rem) {
+  .timeline-marks__date { margin-left: 0; }
+}
+
+/* ==========================================================================
    Keeping a copy
    A rare, quiet word at the foot of Today. Deliberately not a banner, not
    coloured as a warning, and not placed where it interrupts writing.

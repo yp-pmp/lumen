@@ -31,6 +31,9 @@ export function render() {
     view.append(el("div", { style: { marginTop: "2rem" } }, [statList(monthEntries)]));
   }
 
+  const marked = milestoneTimeline();
+  if (marked) view.append(marked);
+
   if (months.length) {
     view.append(
       el("section.section", {}, [
@@ -41,6 +44,47 @@ export function render() {
   }
 
   return view;
+}
+
+/**
+ * The moments you marked, earliest first, so a life reads forwards.
+ * No counts, no progress, nothing to complete — just what happened, and when.
+ */
+function milestoneTimeline() {
+  const marked = store.milestones();
+  if (!marked.length) return null;
+
+  const section = el("section.section", {}, [
+    el("h2.section__label", { text: "Milestones" }),
+  ]);
+
+  const list = el("ol.timeline-marks");
+  let lastYear = null;
+
+  for (const entry of marked) {
+    const year = entry.date.slice(0, 4);
+    if (year !== lastYear) {
+      lastYear = year;
+      list.append(el("li.timeline-marks__year", { text: year, "aria-hidden": "true" }));
+    }
+
+    list.append(
+      el("li.timeline-marks__item", {}, [
+        el("button.timeline-marks__button", {
+          type: "button",
+          "aria-label": `${entry.milestone} — ${plainDate(entry.date)}. Open the page.`,
+          onclick: () => go(`/entry/${entry.id}`),
+        }, [
+          el("span.timeline-marks__dot", { "aria-hidden": "true" }),
+          el("span.timeline-marks__label", { text: entry.milestone }),
+          el("span.timeline-marks__date", { text: plainDate(entry.date) }),
+        ]),
+      ])
+    );
+  }
+
+  section.append(list);
+  return section;
 }
 
 /* --- this month ----------------------------------------------------------- */

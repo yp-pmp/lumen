@@ -130,6 +130,23 @@ strings and would be filled by a single photo. Entries keep only the ids. A page
 can be nothing but a photograph — it will appear in the archive, on Today and in
 the calendar like any other.
 
+## Milestones
+
+Any page can be marked as a milestone: open it and choose **Mark as a
+milestone**, then give it a few words — "Moved to the new flat", "Started the
+new job". Reflections then shows a **Milestones** timeline, earliest first and
+grouped by year, each line linking back to the page you wrote that day.
+
+The marking lives on the page rather than in the editor, because you rarely
+know at the time that a day mattered — and because the writing surface is
+better without one more control on it.
+
+These are *your* milestones, not the app's. LUMEN never awards one, never
+counts them, and shows no progress towards anything: no "100 pages written", no
+streaks, nothing to complete. A milestone is a caption on a day. The label is
+searchable, travels with the page in a backup, and follows the same
+newest-wins rule as any other edit.
+
 ## About this journal
 
 Settings carries a short **About this journal** section, collapsed by default,
